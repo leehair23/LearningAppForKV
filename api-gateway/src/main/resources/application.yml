@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: method_route
+              uri: https://example.org
+              predicates:
+                - Method= GET, POST
+            - id: auth_route
+              uri: http://localhost:8801
+              predicates:
+                - Method= GET, POST
+server:
+  port: 8762

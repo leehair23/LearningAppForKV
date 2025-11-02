@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: auth-service
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${OAUTH_CLIENT_ID}
+            client-secret: ${OAUTH_SECRET_ID}
+            scope:
+              - email
+              - profile
+server:
+  port: 8801
+eureka:
+  client:
+    service-url:
+      defaul-zone: http://localhost:8761/eureka
+

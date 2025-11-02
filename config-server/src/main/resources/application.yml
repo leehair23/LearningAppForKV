@@ -1,0 +1,25 @@
+server:
+  port: 8888
+spring:
+  profiles:
+    active: native
+  output:
+    ansi:
+      enabled: always
+  cloud:
+    config:
+      server:
+        git:
+          uri:
+        native:
+          search-locations: classpath:/config
+        encrypt:
+          enabled: false
+        bootstrap: true
+      allow-override: true
+logging:
+  level:
+    root: info
+    com.banking: debug
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){blue} %clr(${LOG_LEVEL_PATTERN:-%5p}) %m%n"
