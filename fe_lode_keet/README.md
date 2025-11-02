@@ -40,3 +40,10 @@ To run lefthook:
 ```bash
 lefthook install
 ```
+
+Techs to use later
+
+- [ ] arcjet: for security https://arcjet.com/pricing
+- [ ] i18n: for multiple language https://store.crowdin.com/nextjs-localization
+- [ ] zod: for Typescript validation https://zod.dev/api
+- [ ] sentry: for logging https://docs.sentry.io/platforms/javascript/guides/nextjs/
