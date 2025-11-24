@@ -16,6 +16,7 @@
         <module name="api" />
         <module name="config" />
         <module name="admin-service" />
+        <module name="content" />
       </profile>
     </annotationProcessing>
   </component>
@@ -25,6 +26,7 @@
       <module name="api" options="-parameters" />
       <module name="auth" options="-parameters" />
       <module name="config" options="-parameters" />
+      <module name="content" options="-parameters" />
       <module name="content-service" options="-parameters" />
       <module name="course-service" options="-parameters" />
       <module name="eureka" options="-parameters" />
