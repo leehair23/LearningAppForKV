@@ -6,6 +6,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
+        time \
         coreutils \
         locales \
     && rm -rf /var/lib/apt/lists/*
