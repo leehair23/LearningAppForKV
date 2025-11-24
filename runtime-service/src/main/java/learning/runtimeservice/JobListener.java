@@ -28,9 +28,10 @@ public class JobListener {
         this.rest = rest;
         this.apiCallBackBase = System.getenv().getOrDefault("API_URL", "http://localhost:8088");
     }
+
     private String callbackUrl() {
         String base = this.apiCallBackBase;
-        if (base.endsWith("/")) base = base.substring(0, base.length()-1);
+        if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
         if (base.endsWith("/api/callback")) return base;
         return base + "/api/callback";
     }
@@ -50,13 +51,17 @@ public class JobListener {
             ProcessBuilder pb = buildDockerCommand(job.getLanguage(), tmpDir, filename);
             pb.redirectErrorStream(true);
 
-            ExecutionResult res = runDockerProcess(pb, job.getStdin(), 15); // 15s timeout per job
+            ExecutionResult res = runDockerProcess(pb, job.getStdin(), 15);
 
             job.setOutput(res.output);
             job.setExitCode(res.exitCode);
-            job.setStatus(determineStatusString(res.exitCode, res.timedOut));
+            job.setMemory(res.memoryKB);
+            job.setTimeExec(res.timeMs);
 
-            LOG.info("Job {} finished status={} exitCode={}", job.getId(), job.getStatus(), job.getExitCode());
+            job.setStatus(determineStatusString(res.exitCode, res.timedOut, res.timeMs));
+
+            LOG.info("Job {} finished. Status={} Exit={} Time={}ms Mem={}KB",
+                    job.getId(), job.getStatus(), job.getExitCode(), res.timeMs, res.memoryKB);
 
         } catch (Exception ex) {
             LOG.error("Executor error for job {}: {}", job.getId(), ex.toString(), ex);
@@ -76,7 +81,6 @@ public class JobListener {
             }
         }
 
-        // callback to API
         try {
             LOG.debug("POST -> {}", callbackUrl());
             rest.postForObject(callbackUrl(), job, Object.class);
@@ -87,30 +91,25 @@ public class JobListener {
         }
     }
 
-    private String determineStatusString(int exitCode, boolean timedOut) {
-        if (timedOut) return "TIMEOUT";
-        return exitCode == 0 ? "DONE" : "ERROR";
+    private String determineStatusString(int exitCode, boolean timedOut, long timeMs) {
+        if (timedOut || timeMs > 15000) return "TIMEOUT";
+        if (exitCode != 0) return "ERROR";
+        return "DONE";
     }
+
     private String chooseFileName(String language) {
         if (language == null) return "main.py";
         switch (language.toLowerCase()) {
-            case "java":
-                return "Main.java";
-            case "c":
-                return "main.c";
-            case "cpp":
-            case "c++":
-                return "main.cpp";
-            case "py":
-            case "python":
-                return "main.py";
-            default:
-                return "main.py";
+            case "java": return "Main.java";
+            case "c": return "main.c";
+            case "cpp": case "c++": return "main.cpp";
+            case "py": case "python": return "main.py";
+            default: return "main.py";
         }
     }
 
     /**
-     * Build docker run command
+     * Xây dựng lệnh Docker Run.
      */
     private ProcessBuilder buildDockerCommand(String language, Path mountDir, String filename) {
         String mountPath = toDockerMountPath(mountDir);
@@ -120,31 +119,46 @@ public class JobListener {
         String image;
         String payload;
 
+        // Định dạng output của time: METRICS:<MemoryKB>:<TimeSeconds>
+        // %M = Max Resident Set Size (KB)
+        // %e = Real time (seconds)
+        String timeCmd = "/usr/bin/time -f \"METRICS:%M:%e\" ";
+
         switch (lang) {
             case "java":
                 image = "coderunner/java:17";
-                // compile then run (stdout+stderr)
-                payload = "javac " + filename + " 2>&1; echo JAVAC_EXIT:$?; if ls /sandbox/*.class >/dev/null 2>&1; then java -cp /sandbox Main 2>&1; else echo NO_CLASS; exit 127; fi";
+                // Compile -> Check class -> Time & Run
+                payload = "javac " + filename + " 2>&1; " +
+                        "if ls /sandbox/*.class >/dev/null 2>&1; then " +
+                        timeCmd + "java -cp /sandbox Main 2>&1; " +
+                        "else echo NO_CLASS; exit 127; fi";
                 break;
 
             case "c":
                 image = "coderunner/gcc:12";
-                payload = "gcc -std=c11 -O2 -Wall -Wextra " + filename + " -o /sandbox/app 2>&1; echo GCC_EXIT:$?; if [ -f /sandbox/app ]; then timeout 10 /sandbox/app 2>&1; else echo NO_APP; exit 127; fi";
+                // Compile -> Check exe -> Time & Timeout & Run
+                payload = "gcc -std=c11 -O2 -Wall -Wextra " + filename + " -o /sandbox/app 2>&1; " +
+                        "if [ -f /sandbox/app ]; then " +
+                        timeCmd + "timeout 10 /sandbox/app 2>&1; " +
+                        "else echo NO_APP; exit 127; fi";
                 break;
 
             case "cpp":
             case "c++":
                 image = "coderunner/gcc:12";
-                payload = "g++ -std=c++17 -O2 -Wall -Wextra " + filename + " -o /sandbox/app 2>&1; echo GPP_EXIT:$?; if [ -f /sandbox/app ]; then timeout 10 /sandbox/app 2>&1; else echo NO_APP; exit 127; fi";
+                // Compile -> Check exe -> Time & Timeout & Run
+                payload = "g++ -std=c++17 -O2 -Wall -Wextra " + filename + " -o /sandbox/app 2>&1; " +
+                        "if [ -f /sandbox/app ]; then " +
+                        timeCmd + "timeout 10 /sandbox/app 2>&1; " +
+                        "else echo NO_APP; exit 127; fi";
                 break;
 
-            default:
+            default: // Python
                 image = "coderunner/python:3.11";
-                payload = "python /sandbox/" + filename + " 2>&1";
+                payload = timeCmd + "python /sandbox/" + filename + " 2>&1";
                 break;
         }
 
-        // build image if missing (non-fatal)
         try {
             autoBuildImageIfMissing(image, lang);
         } catch (Exception e) {
@@ -157,32 +171,28 @@ public class JobListener {
         cmd.add("-i");
         cmd.add("--rm");
 
-        // isolation & resource flags
+        // --- Security Flags ---
         cmd.add("--network");       cmd.add("none");
         cmd.add("--security-opt");  cmd.add("no-new-privileges:true");
         cmd.add("--cap-drop");      cmd.add("ALL");
         cmd.add("--read-only");
         cmd.add("--tmpfs");         cmd.add("/tmp:rw,size=64m");
-        cmd.add("--memory");        cmd.add("128m");
-        cmd.add("--cpus");          cmd.add("0.5");
-        cmd.add("--pids-limit");    cmd.add("64");
+        cmd.add("--memory");        cmd.add("128m"); // limit 128mib ram
+        cmd.add("--cpus");          cmd.add("0.5");  // limit cpu
+        cmd.add("--pids-limit");    cmd.add("64");   // limit pid
         cmd.add("--user");          cmd.add("1000:1000");
 
-        // mount workspace
+        // Mount volume
         cmd.add("-v");              cmd.add(mountArg);
         cmd.add("-w");              cmd.add("/sandbox");
 
-        // image + shell payload (payload passed as a single arg; no extra quotes)
+        // Command payload
         cmd.add(image);
         cmd.add(payload);
 
-        LOG.info("FINAL DOCKER CMD TOKENS: {}", cmd);
-        LOG.info("FINAL DOCKER CMD (readable): {}", String.join(" ", cmd));
+        LOG.info("DOCKER CMD: {}", String.join(" ", cmd));
         return new ProcessBuilder(cmd);
     }
-
-
-
 
     private String toDockerMountPath(Path p) {
         String path = p.toAbsolutePath().toString();
@@ -197,11 +207,12 @@ public class JobListener {
         return path;
     }
 
+    /**
+     * Chạy Docker process, xử lý stdin và phân tích output để tách metrics.
+     */
     private ExecutionResult runDockerProcess(ProcessBuilder pb, String stdin, long timeoutSeconds) throws Exception {
-        LOG.info("Docker command: {}", String.join(" ", pb.command()));
         Process proc = pb.start();
 
-        // handle stdin
         if (stdin != null && !stdin.isEmpty()) {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(proc.getOutputStream()))) {
                 writer.write(stdin);
@@ -209,17 +220,13 @@ public class JobListener {
             } catch (IOException e) {
                 LOG.warn("Failed to write stdin to process: {}", e.getMessage());
             }
-        } else {
-            // close stdin to signal EOF
-            try {
-                proc.getOutputStream().close();
-            } catch (IOException ignored) {}
         }
+        try { proc.getOutputStream().close(); } catch (IOException ignored) {}
+
 
         ExecutorService readerPool = Executors.newSingleThreadExecutor();
         Future<String> outputFuture = readerPool.submit(() -> {
-            try (InputStream is = proc.getInputStream();
-                 BufferedReader r = new BufferedReader(new InputStreamReader(is))) {
+            try (BufferedReader r = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = r.readLine()) != null) {
@@ -230,7 +237,8 @@ public class JobListener {
         });
 
         boolean finished = proc.waitFor(timeoutSeconds, TimeUnit.SECONDS);
-        String output;
+
+        String rawOutput;
         int exitCode;
         boolean timedOut = false;
 
@@ -238,54 +246,85 @@ public class JobListener {
             timedOut = true;
             proc.destroyForcibly();
             exitCode = -1;
-            output = "TIMEOUT: process killed after " + timeoutSeconds + "s";
+            rawOutput = "TIMEOUT: process killed after " + timeoutSeconds + "s";
         } else {
             exitCode = proc.exitValue();
             try {
-                output = outputFuture.get(2, TimeUnit.SECONDS);
+                rawOutput = outputFuture.get(2, TimeUnit.SECONDS);
             } catch (Exception e) {
-                output = "Failed to read output: " + e.getMessage();
+                rawOutput = "Failed to read output: " + e.getMessage();
+            }
+        }
+        readerPool.shutdownNow();
+
+        return parseMetrics(rawOutput, exitCode, timedOut);
+    }
+
+    /**
+     * helper function
+     */
+    private ExecutionResult parseMetrics(String rawOutput, int exitCode, boolean timedOut) {
+        StringBuilder cleanOutput = new StringBuilder();
+        long memoryKB = 0;
+        long timeMs = 0;
+
+        if (rawOutput != null) {
+            String[] lines = rawOutput.split("\n");
+            for (String line : lines) {
+                if (line.trim().startsWith("METRICS:")) {
+                    try {
+                        // Format: METRICS:5000:0.02
+                        String[] parts = line.trim().split(":");
+                        if (parts.length >= 3) {
+                            memoryKB = Long.parseLong(parts[1]); // KB
+                            double timeSec = Double.parseDouble(parts[2]);
+                            timeMs = (long) (timeSec * 1000); // Đổi sang mili giây
+                        }
+                    } catch (NumberFormatException e) {
+                        LOG.warn("Failed to parse metrics line: {}", line);
+                    }
+                } else {
+                    cleanOutput.append(line).append("\n");
+                }
             }
         }
 
-        readerPool.shutdownNow();
-        return new ExecutionResult(exitCode, output, timedOut);
+        return new ExecutionResult(exitCode, cleanOutput.toString().trim(), timedOut, memoryKB, timeMs);
     }
 
+    // Class nội bộ để chứa kết quả chạy + metrics
     private static class ExecutionResult {
         final int exitCode;
         final String output;
         final boolean timedOut;
+        final long memoryKB;
+        final long timeMs;
 
-        ExecutionResult(int exitCode, String output, boolean timedOut) {
+        ExecutionResult(int exitCode, String output, boolean timedOut, long memoryKB, long timeMs) {
             this.exitCode = exitCode;
             this.output = output;
             this.timedOut = timedOut;
+            this.memoryKB = memoryKB;
+            this.timeMs = timeMs;
         }
     }
+
     private void autoBuildImageIfMissing(String image, String lang) {
         try {
             ProcessBuilder pb = new ProcessBuilder("docker", "image", "inspect", image);
             Process p = pb.start();
-            if (p.waitFor(10, TimeUnit.SECONDS) && p.exitValue() == 0) {
-                LOG.debug("Image {} available", image);
-                return;
-            }
-        } catch (Exception e) {
-            LOG.warn("Image {} doesnt existing, building...", image);
-        }
+            if (p.waitFor(5, TimeUnit.SECONDS) && p.exitValue() == 0) return;
+        } catch (Exception ignored) {}
 
         String langDir = switch (lang) {
             case "java" -> "java";
             case "c", "cpp", "c++" -> "gcc";
             default -> "python";
         };
-
         String projectRoot = System.getProperty("user.dir");
-        String contextPath = projectRoot + File.separator + "executor" + File.separator + "images" + File.separator + langDir;
+        String contextPath = projectRoot + File.separator + "images" + File.separator + langDir;
 
-        LOG.info("Đang build image {} từ {}", image, contextPath);
-
+        LOG.info("Building image {} from {}", image, contextPath);
         ProcessBuilder buildPb = new ProcessBuilder(
                 "docker", "build", "-f", contextPath + File.separator + "Dockerfile", "-t", image, contextPath
         );
@@ -293,16 +332,11 @@ public class JobListener {
         try {
             Process buildProc = buildPb.start();
             try (BufferedReader br = new BufferedReader(new InputStreamReader(buildProc.getInputStream()))) {
-                br.lines().forEach(line -> LOG.info("[build:{}] {}", langDir, line));
+                while(br.readLine() != null) {}
             }
-            boolean finished = buildProc.waitFor(900, TimeUnit.SECONDS);
-            if (!finished || buildProc.exitValue() != 0) {
-                LOG.error("build image {} failed.", image);
-            } else {
-                LOG.info("build image {} successfully", image);
-            }
-        } catch (Exception ex) {
-            LOG.error("Error when building image {}", image, ex);
+            buildProc.waitFor(600, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            LOG.error("Failed to auto-build image {}", image, e);
         }
     }
 }

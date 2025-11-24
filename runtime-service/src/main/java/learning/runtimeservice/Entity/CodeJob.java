@@ -10,11 +10,13 @@ public class CodeJob implements Serializable {
     private String status;
     private String output;
     private int exitCode;
+    private long memory;
+    private long timeExec;
 
     public CodeJob() {
     }
 
-    public CodeJob(String id, String language, String code, String stdin, String status, String output, int exitCode) {
+    public CodeJob(String id, String language, String code, String stdin, String status, String output, int exitCode, long memory, long timeExec) {
         this.id = id;
         this.language = language;
         this.code = code;
@@ -22,6 +24,8 @@ public class CodeJob implements Serializable {
         this.status = status;
         this.output = output;
         this.exitCode = exitCode;
+        this.memory = memory;
+        this.timeExec = timeExec;
     }
 
     public String getId() {
@@ -78,5 +82,21 @@ public class CodeJob implements Serializable {
 
     public void setExitCode(int exitCode) {
         this.exitCode = exitCode;
+    }
+
+    public long getMemory() {
+        return memory;
+    }
+
+    public void setMemory(long memory) {
+        this.memory = memory;
+    }
+
+    public long getTimeExec() {
+        return timeExec;
+    }
+
+    public void setTimeExec(long timeExec) {
+        this.timeExec = timeExec;
     }
 }
