@@ -1,4 +1,4 @@
-export const Footer = () => {
+const Footer = () => {
   const currentYear = new Date().getFullYear();
   return (
     <footer className="w-full flex items-center bg-slate-800 justify-center text-center sm:text-left">
@@ -24,3 +24,5 @@ export const Footer = () => {
     </footer>
   );
 };
+
+export default Footer;

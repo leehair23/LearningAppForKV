@@ -1,4 +1,4 @@
-export const Divider = (props: { title?: string }) => {
+const Divider = (props: { title?: string }) => {
   return (
     <span className="flex items-center">
       <span className="h-px flex-1 bg-gray-300 dark:bg-gray-600"></span>
@@ -11,3 +11,5 @@ export const Divider = (props: { title?: string }) => {
     </span>
   );
 };
+
+export default Divider;
