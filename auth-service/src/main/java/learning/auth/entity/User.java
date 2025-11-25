@@ -8,5 +8,7 @@ package learning.auth.entity;
     String login = principal.getAttribute("login");
 * ví dụ ntn ấy
 * */
+
+
 public class User {
 }
