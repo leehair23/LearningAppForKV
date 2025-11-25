@@ -41,7 +41,7 @@ To run lefthook:
 lefthook install
 ```
 
-Techs to use later
+Techs to use later (if we have time LOL)
 
 - [ ] arcjet: for security https://arcjet.com/pricing
 - [ ] i18n: for multiple language https://store.crowdin.com/nextjs-localization
