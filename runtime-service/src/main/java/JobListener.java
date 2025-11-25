@@ -1,10 +1,9 @@
-package learning.runtimeservice;
-
-import learning.runtimeservice.Entity.CodeJob;
-import learning.runtimeservice.config.RunnerConfig;
+import config.RunnerConfig;
+import entity.CodeJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -21,16 +20,16 @@ import java.util.concurrent.*;
 public class JobListener {
     private static final Logger LOG = LoggerFactory.getLogger(JobListener.class);
 
+    @Value("{api.base-url}")
+    private String apiBaseUrl;
     private final RestTemplate rest;
-    private final String apiCallBackBase;
 
     public JobListener(RestTemplate rest) {
         this.rest = rest;
-        this.apiCallBackBase = System.getenv().getOrDefault("API_URL", "http://localhost:8088");
     }
 
     private String callbackUrl() {
-        String base = this.apiCallBackBase;
+        String base = this.apiBaseUrl;
         if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
         if (base.endsWith("/api/callback")) return base;
         return base + "/api/callback";

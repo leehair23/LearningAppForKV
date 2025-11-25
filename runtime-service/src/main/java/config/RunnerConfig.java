@@ -1,4 +1,4 @@
-package learning.runtimeservice.config;
+package config;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.context.annotation.Bean;

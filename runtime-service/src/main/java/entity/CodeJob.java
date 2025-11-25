@@ -1,4 +1,4 @@
-package learning.runtimeservice.Entity;
+package entity;
 
 import java.io.Serializable;
 
