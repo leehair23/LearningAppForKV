@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version> <relativePath/> </parent>
+        <version>3.5.7</version> <relativePath/> </parent>
 
     <groupId>com.smartcode</groupId>
     <artifactId>smartcode-backend</artifactId>
@@ -30,7 +30,7 @@
         <module>course-service</module> <module>eureka-service</module>
         <module>runtime-service</module>
         <module>submission-services</module>
-        <module>user-services</module>
+        <module>user-service</module>
     </modules>
 
     <dependencyManagement>
