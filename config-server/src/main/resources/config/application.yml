@@ -4,11 +4,13 @@ spring:
       host: localhost
       port: 27017
       auto-index-creation: true
+      username: ${MONGODB_USER}
+      password: ${MONGODB_PASS}
   rabbitmq:
     host: localhost
     port: 5672
-    username: guest
-    password: guest
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASSWORD}
   # Định dạng log chung cho đẹp
   output:
     ansi:
