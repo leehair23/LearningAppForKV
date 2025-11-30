@@ -1,11 +1,8 @@
 spring:
   data:
     mongodb:
-      host: localhost
-      port: 27017
+      uri: ${MONGO_URI}
       auto-index-creation: true
-      username: ${MONGODB_USER}
-      password: ${MONGODB_PASS}
   rabbitmq:
     host: localhost
     port: 5672
