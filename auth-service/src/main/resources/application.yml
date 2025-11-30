@@ -1,6 +1,9 @@
 spring:
   application:
     name: auth-service
+  config:
+    import: "configserver:http://localhost:8888/"
+
   security:
     oauth2:
       client:
@@ -18,8 +21,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-  config:
-    import: "optional:configserver:hthttp://localhost:8888/tp://localhost:8888/"
 
 
 
