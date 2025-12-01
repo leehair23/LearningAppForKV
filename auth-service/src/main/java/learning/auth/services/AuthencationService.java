@@ -25,7 +25,7 @@ import java.util.Collections;
 @Service
 @RequiredArgsConstructor
 public class AuthencationService {
-    @Value("${application.security.oauth2.client.registration.google.client-id}")
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
