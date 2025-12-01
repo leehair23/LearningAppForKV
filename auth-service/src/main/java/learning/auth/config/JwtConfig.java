@@ -19,7 +19,7 @@ import java.util.Base64;
 public class JwtConfig {
 
     @Bean
-    public JwtEncoder jwtEncoder(@Value("${application.security.jwt.secret-key}") String base64Secret) {
+    public JwtEncoder jwtEncoder(@Value("${spring.security.jwt.secret-key}") String base64Secret) {
         byte[] secret = Base64.getDecoder().decode(base64Secret);
         OctetSequenceKey jwk = new OctetSequenceKey.Builder(secret).build();
         JWKSet jwkSet = new JWKSet(jwk);
@@ -27,7 +27,7 @@ public class JwtConfig {
         return new NimbusJwtEncoder(jwkSource);
     }
     @Bean
-    public JwtDecoder jwtDecoder(@Value("${application.security.jwt.secret-key}") String base64Secret){
+    public JwtDecoder jwtDecoder(@Value("${spring.security.jwt.secret-key}") String base64Secret){
         byte[] secret = Base64.getDecoder().decode(base64Secret);
         SecretKey secretKey = new SecretKeySpec(secret, "HmacSHA256");
         return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS256).build();
