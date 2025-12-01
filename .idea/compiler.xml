@@ -8,10 +8,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="course-service" />
+        <module name="submission-service" />
         <module name="auth" />
         <module name="content-service" />
         <module name="eureka" />
-        <module name="submission-services" />
         <module name="api" />
         <module name="user-service" />
         <module name="config" />
@@ -42,7 +42,7 @@
       <module name="course-service" options="-parameters" />
       <module name="eureka" options="-parameters" />
       <module name="runtime-service" options="-parameters" />
-      <module name="submission-services" options="-parameters" />
+      <module name="submission-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>
   </component>
