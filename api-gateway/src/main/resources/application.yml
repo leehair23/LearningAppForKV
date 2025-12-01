@@ -27,8 +27,8 @@ spring:
                       filters:
                         - StripPrefix=1
                     #user-service
-                    - id: user-services
-                      uri: lb://user-services
+                    - id: user-service
+                      uri: lb://user-service
                       predicates:
                         - Path=/app/users/**, /app/user/**
                       filters:
