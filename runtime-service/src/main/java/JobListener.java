@@ -1,7 +1,6 @@
 import config.RunnerConfig;
 import entity.CodeJob;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,9 +15,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.*;
 
+@Slf4j
 @Component
 public class JobListener {
-    private static final Logger LOG = LoggerFactory.getLogger(JobListener.class);
 
     @Value("{api.base-url}")
     private String apiBaseUrl;
@@ -37,7 +36,7 @@ public class JobListener {
 
     @RabbitListener(queues = RunnerConfig.QUEUE)
     public void receive(CodeJob job) {
-        LOG.info("Received Job: {} lang={}", job.getId(), job.getLanguage());
+        log.info("Received Job: {} lang={}", job.getId(), job.getLanguage());
         job.setStatus("RUNNING");
 
         Path tmpDir = null;
@@ -59,11 +58,11 @@ public class JobListener {
 
             job.setStatus(determineStatusString(res.exitCode, res.timedOut, res.timeMs));
 
-            LOG.info("Job {} finished. Status={} Exit={} Time={}ms Mem={}KB",
+            log.info("Job {} finished. Status={} Exit={} Time={}ms Mem={}KB",
                     job.getId(), job.getStatus(), job.getExitCode(), res.timeMs, res.memoryKB);
 
         } catch (Exception ex) {
-            LOG.error("Executor error for job {}: {}", job.getId(), ex.toString(), ex);
+            log.error("Executor error for job {}: {}", job.getId(), ex.toString(), ex);
             job.setStatus("ERROR");
             job.setOutput("Executor error: " + ex.getMessage());
             job.setExitCode(-2);
@@ -75,18 +74,18 @@ public class JobListener {
                             .map(Path::toFile)
                             .forEach(File::delete);
                 } catch (Exception ignore) {
-                    LOG.warn("Failed to cleanup temp dir for job {}", job.getId(), ignore);
+                    log.warn("Failed to cleanup temp dir for job {}", job.getId(), ignore);
                 }
             }
         }
 
         try {
-            LOG.debug("POST -> {}", callbackUrl());
+            log.debug("POST -> {}", callbackUrl());
             rest.postForObject(callbackUrl(), job, Object.class);
         } catch (HttpClientErrorException he) {
-            LOG.error("Callback HTTP error: status={} body={}", he.getStatusCode(), he.getResponseBodyAsString(), he);
+            log.error("Callback HTTP error: status={} body={}", he.getStatusCode(), he.getResponseBodyAsString(), he);
         } catch (Exception e) {
-            LOG.error("Failed to post callback for job {}: {}", job.getId(), e.getMessage(), e);
+            log.error("Failed to post callback for job {}: {}", job.getId(), e.getMessage(), e);
         }
     }
 
@@ -161,7 +160,7 @@ public class JobListener {
         try {
             autoBuildImageIfMissing(image, lang);
         } catch (Exception e) {
-            LOG.warn("autoBuildImageIfMissing failed for {}: {}", image, e.getMessage());
+            log.warn("autoBuildImageIfMissing failed for {}: {}", image, e.getMessage());
         }
 
         List<String> cmd = new ArrayList<>();
@@ -189,7 +188,7 @@ public class JobListener {
         cmd.add(image);
         cmd.add(payload);
 
-        LOG.info("DOCKER CMD: {}", String.join(" ", cmd));
+        log.info("DOCKER CMD: {}", String.join(" ", cmd));
         return new ProcessBuilder(cmd);
     }
 
@@ -217,7 +216,7 @@ public class JobListener {
                 writer.write(stdin);
                 writer.flush();
             } catch (IOException e) {
-                LOG.warn("Failed to write stdin to process: {}", e.getMessage());
+                log.warn("Failed to write stdin to process: {}", e.getMessage());
             }
         }
         try { proc.getOutputStream().close(); } catch (IOException ignored) {}
@@ -280,7 +279,7 @@ public class JobListener {
                             timeMs = (long) (timeSec * 1000); // Đổi sang mili giây
                         }
                     } catch (NumberFormatException e) {
-                        LOG.warn("Failed to parse metrics line: {}", line);
+                        log.warn("Failed to parse metrics line: {}", line);
                     }
                 } else {
                     cleanOutput.append(line).append("\n");
@@ -323,7 +322,7 @@ public class JobListener {
         String projectRoot = System.getProperty("user.dir");
         String contextPath = projectRoot + File.separator + "images" + File.separator + langDir;
 
-        LOG.info("Building image {} from {}", image, contextPath);
+        log.info("Building image {} from {}", image, contextPath);
         ProcessBuilder buildPb = new ProcessBuilder(
                 "docker", "build", "-f", contextPath + File.separator + "Dockerfile", "-t", image, contextPath
         );
@@ -335,7 +334,7 @@ public class JobListener {
             }
             buildProc.waitFor(600, TimeUnit.SECONDS);
         } catch (Exception e) {
-            LOG.error("Failed to auto-build image {}", image, e);
+            log.error("Failed to auto-build image {}", image, e);
         }
     }
 }
