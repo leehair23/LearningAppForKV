@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>learning</groupId>
-    <artifactId>submission-services</artifactId>
+    <artifactId>submission-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>submission-services</name>
     <description>submission-services</description>

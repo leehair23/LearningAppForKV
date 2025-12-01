@@ -1,10 +1,14 @@
 package dto;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public class SubmissionDTO {
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreateRequest{
         private String problemId;
         private String language;
@@ -13,6 +17,8 @@ public class SubmissionDTO {
         private String stdin;
     }
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Response{
         private String id;
         private String status;
