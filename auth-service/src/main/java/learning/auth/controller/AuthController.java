@@ -26,6 +26,11 @@ public class AuthController {
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
         return ResponseEntity.ok(service.authenticate(request));
     }
+    @PostMapping("/google")
+    public ResponseEntity<AuthenticationResponse> loginGoogle(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        return ResponseEntity.ok(service.authenticateGoogle(token));
+    }
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationResponse> refreshToken(HttpServletRequest request){
         AuthenticationResponse response = service.refreshToken(request);
