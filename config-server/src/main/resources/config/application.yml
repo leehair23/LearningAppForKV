@@ -12,6 +12,12 @@ spring:
   output:
     ansi:
       enabled: always
+  security:
+    jwt:
+      secret-key: "${JWT_KEY}"
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
 logging:
   pattern:
     console: "%clr(%d{HH:mm:ss}){blue} %clr(%-5level) %clr(%logger{36}){cyan} - %msg%n"
