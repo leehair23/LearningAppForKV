@@ -25,8 +25,8 @@ Hệ thống bao gồm các Microservices giao tiếp qua REST API và RabbitMQ:
 | Service | Tên cấu hình          | Port | Vai trò & Trách nhiệm |
 | :--- |:----------------------| :--- | :--- |
 | **Gateway** | `api-gateway`         | **8080** | Cổng giao tiếp duy nhất, định tuyến request, xác thực (Auth). |
-| **Identity** | `auth-service`        | **8085** | Quản lý đăng ký/đăng nhập, JWT Token (MySQL). |
-| **Core** | `user-services`       | **8081** | Quản lý hồ sơ người dùng, thống kê thành tích (MongoDB). |
+| **Identity** | `auth-service`        | **8081** | Quản lý đăng ký/đăng nhập, JWT Token (MySQL). |
+| **Core** | `user-services`       | **8085** | Quản lý hồ sơ người dùng, thống kê thành tích (MongoDB). |
 | **LMS** | `course-service`      | **8084** | Quản lý Khóa học, Bài giảng, Tiến độ học tập (LMS Logic). |
 | **OJ** | `content-service`     | **8083** | Quản lý Đề bài (Problems), Testcase, Cuộc thi (Contest). |
 | **Engine** | `submission-services` | **8082** | Điều phối việc nộp bài, đẩy job vào hàng đợi (RabbitMQ). |
