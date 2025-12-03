@@ -1,38 +1,21 @@
-"use client";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { Connstants } from "@/common/constants";
+import { authStore } from "@/stores/authStore";
 
-import Container from "@/components/UI/Container";
-import Divider from "@/components/UI/Divider";
-import Footer from "@/components/UI/Footer";
-import Input from "@/components/UI/Input";
-import Navbar from "@/components/UI/Navbar";
-import { useState } from "react";
+export default async function Home() {
+  const cookieStore = await cookies();
+  const token = authStore().accessToken;
+  const { ROUTES } = Connstants;
 
-export default function Home() {
-  const [searchValue, setSearchValue] = useState("");
-  const handleSearch = () => {
-    console.log("Searching for:", searchValue);
-  };
-  return (
-    <>
-      <Navbar></Navbar>
-      <Container>
-        <div className="h-auto rounded bg-amber-500">Left small container</div>
-        <div className="h-auto rounded bg-gray-300 lg:col-span-2">
-          <div>
-            <label htmlFor=""></label>
-            <Input
-              value={searchValue}
-              onChange={setSearchValue}
-              onEnter={handleSearch}
-              name="password-input"
-              placeholder="Enter password"
-              autoFocus
-              type="password"></Input>
-          </div>
-        </div>
-      </Container>
-      <Divider></Divider>
-      <Footer></Footer>
-    </>
-  );
+  /**
+   * NOTE: this is wrong approach, due to Zustand being a client side only
+   * => need to find a better way, probably in middlewares we will use localStorage
+   * => it would not be the best but time is not on our side
+   */
+
+  // Check for token is not valid, then redirect to /signin
+  redirect(ROUTES.PUBLIC.SIGN_IN);
+
+  // Check for token is valid, then redirect to /dashboard
 }
