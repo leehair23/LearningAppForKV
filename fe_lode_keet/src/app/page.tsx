@@ -1,10 +1,10 @@
 "use client";
 
-import Container from "@/components/Container";
-import Divider from "@/components/Divider";
-import Footer from "@/components/Footer";
-import Input from "@/components/Input";
-import Navbar from "@/components/Navbar";
+import Container from "@/components/UI/Container";
+import Divider from "@/components/UI/Divider";
+import Footer from "@/components/UI/Footer";
+import Input from "@/components/UI/Input";
+import Navbar from "@/components/UI/Navbar";
 import { useState } from "react";
 
 export default function Home() {
