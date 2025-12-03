@@ -15,15 +15,15 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class ServiceImplement implements SubmissionService {
-    private static final Logger log = LoggerFactory.getLogger(ServiceImplement.class);
+public class SubmissionServiceImplement implements SubmissionService {
+    private static final Logger log = LoggerFactory.getLogger(SubmissionServiceImplement.class);
     private static final int MAX_OUTPUT_LENGTH = 5000;
 
     private final ISubmissionRepository submissionRepository;
     private final AmqpTemplate amqpTemplate;
 
 
-    public ServiceImplement(ISubmissionRepository submissionRepository, AmqpTemplate amqpTemplate) {
+    public SubmissionServiceImplement(ISubmissionRepository submissionRepository, AmqpTemplate amqpTemplate) {
         this.submissionRepository = submissionRepository;
         this.amqpTemplate = amqpTemplate;
     }

@@ -12,7 +12,7 @@
     <file url="file://$PROJECT_DIR$/runtime-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/submission-services/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/submission-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/user-service/src/main/java" charset="UTF-8" />
   </component>
 </project>

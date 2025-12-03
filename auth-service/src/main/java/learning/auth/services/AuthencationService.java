@@ -21,18 +21,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class AuthencationService {
-    @Value("${application.security.oauth2.client.registration.google.client-id}")
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationResponse register(RegisterRequest request){
+    public AuthenticationResponse register(RegisterRequest request) {
         var user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -40,15 +43,11 @@ public class AuthencationService {
                 .role(Role.USER)
                 .build();
         userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
 
-        return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+        return generateAuthResponse(user);
     }
-    public AuthenticationResponse authenticate(AuthenticationRequest request){
+
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -57,51 +56,45 @@ public class AuthencationService {
         );
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
 
-        return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+        return generateAuthResponse(user);
     }
 
-    public AuthenticationResponse authenticateGoogle(String googleToken){
-        try{
+    public AuthenticationResponse authenticateGoogle(String googleToken) {
+        try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-                    .setAudience(Collections.singletonList(googleClientId)).build();
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
             GoogleIdToken idToken = verifier.verify(googleToken);
-            if(idToken == null){
+
+            if (idToken != null) {
                 GoogleIdToken.Payload payload = idToken.getPayload();
                 String email = payload.getEmail();
-                String username = (String)payload.get("name");
-
+                String name = (String) payload.get("name");
+                String username = email;
                 var user = userRepository.findByEmail(email).orElse(null);
 
-                if(user == null){
+                if (user == null) {
                     user = User.builder()
-                            .username(email)
+                            .username(username)
                             .email(email)
                             .password(passwordEncoder.encode("GG_AUTH_NO_PASS"))
                             .role(Role.USER)
                             .build();
                     userRepository.save(user);
-                }var jwtToken = jwtService.generateToken(user);
-                var refreshToken = jwtService.generateRefreshToken(user);
+                }
 
-                return AuthenticationResponse.builder()
-                        .accessToken(jwtToken)
-                        .refreshToken(refreshToken)
-                        .build();
-            }else {
+                return generateAuthResponse(user);
+            } else {
                 throw new RuntimeException("Invalid Google Token");
             }
-        }catch (Exception e){
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Google Auth Failed", e);
         }
     }
 
-    public AuthenticationResponse refreshToken(HttpServletRequest request){
+    public AuthenticationResponse refreshToken(HttpServletRequest request) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
         final String username;
@@ -117,7 +110,7 @@ public class AuthencationService {
             var user = userRepository.findByUsername(username).orElseThrow();
 
             if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
+                var accessToken = jwtService.generateToken(getExtraClaims(user), user);
 
                 return AuthenticationResponse.builder()
                         .accessToken(accessToken)
@@ -128,4 +121,20 @@ public class AuthencationService {
         return null;
     }
 
+    private Map<String, Object> getExtraClaims(User user) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("email", user.getEmail());
+        extraClaims.put("role", user.getRole().name());
+        return extraClaims;
+    }
+
+    private AuthenticationResponse generateAuthResponse(User user) {
+        var jwtToken = jwtService.generateToken(getExtraClaims(user), user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
+        return AuthenticationResponse.builder()
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
 }

@@ -15,10 +15,10 @@ public class JwtService {
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
 
-    @Value("${application.security.jwt.expiration}")
+    @Value("${spring.security.jwt.expiration}")
     private long jwtExpirationMillis;
 
-    @Value("${application.security.jwt.refresh-token.expiration}")
+    @Value("${spring.security.jwt.refresh-token.expiration}")
     private long refreshExpirationMillis;
 
     public JwtService(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
