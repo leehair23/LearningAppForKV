@@ -16,23 +16,39 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
 
-    public Response getOrCreateProfile(String username, String email){
-        UserProfile user = userRepository.findByUsername(username)
-                .orElseGet(()->{
-                    UserProfile newUser = UserProfile.builder()
-                            .username(username)
-                            .email(email != null ? email : "")
-                            .fullName(username)
-                            .bio("Coding enthusiast")
-                            .avtUrl("https://ui-avatars.com/api/?name=" + username)
-                            .score(0.0)
-                            .rank("ROOKIE")
-                            .solveCount(0)
-                            .createdAt(Instant.now())
-                            .updatedAt(Instant.now())
-                            .build();
-                    return userRepository.save(newUser);
-                });
+    public Response getOrCreateProfile(String username, String email) {
+        UserProfile user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+             user = UserProfile.builder()
+                    .username(username)
+                    .email(email != null ? email : "")
+                    .fullName(username)
+                    .bio("Coding enthusiast")
+                    .avtUrl("https://ui-avatars.com/api/?name=" + username)
+                    .score(0.0)
+                    .rank("ROOKIE")
+                    .solveCount(0)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+            user = userRepository.save(user);
+        } else {
+            boolean needUpdate = false;
+
+            if (email != null && !email.isEmpty()) {
+                if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                    user.setEmail(email);
+                    needUpdate = true;
+                }
+            }
+
+            if (needUpdate) {
+                user.setUpdatedAt(Instant.now());
+                user = userRepository.save(user);
+            }
+        }
+
         return mapToDTO(user);
     }
     public Response getPublicProfile(String username){
