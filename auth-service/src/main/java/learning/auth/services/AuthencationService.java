@@ -35,7 +35,6 @@ public class AuthencationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    // --- 1. ĐĂNG KÝ (Username/Pass) ---
     public AuthenticationResponse register(RegisterRequest request) {
         var user = User.builder()
                 .username(request.getUsername())
@@ -45,11 +44,9 @@ public class AuthencationService {
                 .build();
         userRepository.save(user);
 
-        // Gọi hàm helper để tạo token có chứa email
         return generateAuthResponse(user);
     }
 
-    // --- 2. ĐĂNG NHẬP (Username/Pass) ---
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -63,7 +60,6 @@ public class AuthencationService {
         return generateAuthResponse(user);
     }
 
-    // --- 3. ĐĂNG NHẬP GOOGLE ---
     public AuthenticationResponse authenticateGoogle(String googleToken) {
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
@@ -72,14 +68,11 @@ public class AuthencationService {
 
             GoogleIdToken idToken = verifier.verify(googleToken);
 
-            // SỬA LỖI LOGIC: idToken != null mới xử lý
             if (idToken != null) {
                 GoogleIdToken.Payload payload = idToken.getPayload();
                 String email = payload.getEmail();
-                // Lấy tên làm username, xử lý trùng lặp nếu cần (hoặc dùng email làm username luôn)
                 String name = (String) payload.get("name");
-                String username = email; // Tạm thời dùng email làm username cho unique
-
+                String username = email;
                 var user = userRepository.findByEmail(email).orElse(null);
 
                 if (user == null) {
@@ -101,7 +94,6 @@ public class AuthencationService {
         }
     }
 
-    // --- 4. REFRESH TOKEN ---
     public AuthenticationResponse refreshToken(HttpServletRequest request) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
@@ -112,13 +104,12 @@ public class AuthencationService {
         }
 
         refreshToken = authHeader.substring(7);
-        username = jwtService.extractUsername(refreshToken); // Token cũ không có email trong subject, chỉ có username
+        username = jwtService.extractUsername(refreshToken);
 
         if (username != null) {
             var user = userRepository.findByUsername(username).orElseThrow();
 
             if (jwtService.isTokenValid(refreshToken, user)) {
-                // Tạo Access Token mới có chứa email
                 var accessToken = jwtService.generateToken(getExtraClaims(user), user);
 
                 return AuthenticationResponse.builder()
@@ -130,9 +121,6 @@ public class AuthencationService {
         return null;
     }
 
-    // --- HELPER METHODS (Tái sử dụng code) ---
-
-    // Tạo Map chứa thông tin phụ (Email, Role) để nhét vào Token
     private Map<String, Object> getExtraClaims(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("email", user.getEmail());
@@ -140,7 +128,6 @@ public class AuthencationService {
         return extraClaims;
     }
 
-    // Sinh Response chứa Access & Refresh Token
     private AuthenticationResponse generateAuthResponse(User user) {
         var jwtToken = jwtService.generateToken(getExtraClaims(user), user);
         var refreshToken = jwtService.generateRefreshToken(user);
