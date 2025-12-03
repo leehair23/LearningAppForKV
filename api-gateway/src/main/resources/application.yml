@@ -27,26 +27,55 @@ spring:
                       filters:
                         - StripPrefix=1
                     #user-service
-                    - id: user-service
+                    - id: user-admin
+                      uri: lb://user-service
+                      predicates:
+                        - Path=/app/users/**, /app/user/**
+                        - Method=POST,PUT,DELETE
+                      filters:
+                        - StripPrefix=1
+                        - Authentication=ADMIN
+                    - id: user-normal
                       uri: lb://user-service
                       predicates:
                         - Path=/app/users/**, /app/user/**
                       filters:
                         - StripPrefix=1
+                        - Authentication
+
                     #content-service
+                    - id: content-admin
+                      uri: lb://content-service
+                      predicates:
+                        - Path=/app/problems/**
+                        - Method=POST,PUT,DELETE
+                      filters:
+                        - StripPrefix=1
+                        - Authentication=ADMIN
                     - id: content-service
                       uri: lb://content-service
                       predicates:
                         - Path=/app/problems/**, /app/contests/**
                       filters:
                         - StripPrefix=1
+                        - Authentication
                     #course-service
+                    - id: course-admin
+                      uri: lb://course-service
+                      predicates:
+                        - Path=/app/courses/**
+                        - Method=POST,PUT,DELETE
+                      filters:
+                        - StripPrefix=1
+                        - Authentication=ADMIN
+
                     - id: course-service
                       uri: lb://course-service
                       predicates:
                         - Path=/app/courses/**, /app/lessons/**, /app/progress/**
                       filters:
                         - StripPrefix=1
+
                     #submission-service
                     - id: submission-service
                       uri: lb://submission-service
