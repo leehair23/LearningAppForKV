@@ -1,4 +1,5 @@
-export class Connstants {
+export class Constants {
+  public static readonly BASE_URL = "http://localhost:8080/app";
   public static readonly REQUEST_METHODS = {
     POST: "POST",
     GET: "GET",

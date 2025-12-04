@@ -12,3 +12,7 @@ export const middleware = (req: NextRequest) => {
   if (!token) {
   }
 };
+
+export const config = {
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};

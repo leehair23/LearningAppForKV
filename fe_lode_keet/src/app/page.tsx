@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Connstants } from "@/common/constants";
+import { Constants } from "@/common/constants";
 import { authStore } from "@/stores/authStore";
 
 export default async function Home() {
   const cookieStore = await cookies();
   const token = authStore().accessToken;
-  const { ROUTES } = Connstants;
+  const { ROUTES } = Constants;
 
   /**
    * NOTE: this is wrong approach, due to Zustand being a client side only

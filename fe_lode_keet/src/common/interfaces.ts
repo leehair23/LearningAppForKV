@@ -9,3 +9,4 @@ export interface AuthState {
   setUser: (user: unknown) => void;
   clearState: () => void;
 }
+
