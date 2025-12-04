@@ -59,6 +59,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
     }
 
     private Mono<Void> handleValidJwt(ServerWebExchange exchange, GatewayFilterChain chain, Jwt jwt, Config config) {
+        String userId = jwt.getClaimAsString("userId");
         String username = jwt.getSubject();
         String email = jwt.getClaimAsString("email");
         String role = jwt.getClaimAsString("role");
@@ -74,6 +75,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
 
         ServerHttpRequest request = exchange.getRequest()
                 .mutate()
+                .header("X-Auth-UserId", userId)
                 .header("X-Auth-User", username != null ? username : "")
                 .header("X-Auth-Email", email != null ? email : "")
                 .header("X-Auth-Role", role != null ? role : "USER")
