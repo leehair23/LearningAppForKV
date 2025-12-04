@@ -39,6 +39,7 @@ public class UserProfile {
     @Field("Solved")
     public Integer solveCount = 0;
 
+    public boolean isActive = true;
     public Instant createdAt = Instant.now();
     public Instant updatedAt = Instant.now();
 
