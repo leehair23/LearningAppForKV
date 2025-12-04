@@ -18,38 +18,28 @@ import java.util.stream.Collectors;
 public class ProblemService {
     private final ProblemRepository problemRepository;
     //public view
-    public Page<Problem> getProblems(String keyword, String difficulty, Pageable pageable) {
-        if(keyword != null && !keyword.isEmpty()) {
+    public Page<ProblemDTO> getProblems(String keyword, String difficulty, Pageable pageable) {
+        Page<Problem> rawPage;
+
+        if (keyword != null && !keyword.isEmpty()) {
             if (difficulty != null) {
-                return problemRepository.findByTitleContainingIgnoreCaseAndDifficulty(keyword, difficulty, pageable);
+                rawPage = problemRepository.findByTitleContainingIgnoreCaseAndDifficulty(keyword, difficulty, pageable);
+            } else {
+                rawPage = problemRepository.findByTitleContainingIgnoreCase(keyword, pageable);
             }
-            return problemRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+        } else {
+            rawPage = problemRepository.findAll(pageable);
         }
-        return problemRepository.findAll(pageable);
+        return rawPage.map(this::mapToDTO);
     }
     public ProblemDTO getProblemForUser(String id){
-        Problem p = problemRepository.findById(id).orElseThrow(()-> new RuntimeException("Not found"));
-
-        ProblemDTO dto = new ProblemDTO();
-        dto.setId(p.getId());
-        dto.setTitle(p.getTitle());
-        dto.setDescription(p.getDescription());
-        dto.setDifficulty(p.getDifficulty());
-        dto.setTags(p.getTags());
+        Problem p = problemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Not found"));
+        // Bổ sung thêm các trường chi tiết cần thiết cho trang Detail mà List không cần
+        ProblemDTO dto = mapToDTO(p);
+        dto.setTemplates(p.getTemplates());
         dto.setTimeLimit(p.getTimeLimit());
         dto.setMemoryLimit(p.getMemoryLimit());
-        dto.setTemplates(p.getTemplates());
-
-        List<TestCaseDTO> samples = p.getTestCases().stream()
-                .filter(t -> !t.isHidden())
-                .map(t -> {
-                    TestCaseDTO tDto = new TestCaseDTO();
-                    tDto.setInput(t.getInput());
-                    tDto.setExpectedOutput(t.getExpectedOutput());
-                    return tDto;
-                })
-                .collect(Collectors.toList());
-        dto.setSampleTestcases(samples);
         return dto;
     }
     //admin stuff (CRUD)
@@ -88,5 +78,27 @@ public class ProblemService {
     //internal (submission-service)
     public Problem getProblemFull(String id){
         return problemRepository.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
+    }
+    private ProblemDTO mapToDTO(Problem p){
+        ProblemDTO dto = new ProblemDTO();
+        dto.setId(p.getId());
+        dto.setTitle(p.getTitle());
+        dto.setDescription(p.getDescription());
+        dto.setDifficulty(p.getDifficulty());
+        dto.setTags(p.getTags());
+
+        if (p.getTestCases() != null) {
+            List<TestCaseDTO> samples = p.getTestCases().stream()
+                    .filter(t -> !t.isHidden()) // Lọc bỏ hidden
+                    .map(t -> {
+                        TestCaseDTO tDto = new TestCaseDTO();
+                        tDto.setInput(t.getInput());
+                        tDto.setExpectedOutput(t.getExpectedOutput());
+                        return tDto;
+                    })
+                    .collect(Collectors.toList());
+            dto.setSampleTestcases(samples);
+        }
+        return dto;
     }
 }

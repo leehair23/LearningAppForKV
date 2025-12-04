@@ -3,6 +3,7 @@ package learning.contentservice.controller;
 import learning.contentservice.dto.ProblemDTO;
 import learning.contentservice.entity.Problem;
 import learning.contentservice.service.ProblemService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,16 +14,18 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/problems")
-public class ContentController {
+public class ProblemController {
+    @Value("${app.internal-secret}")
+    private String internalSecret;
     private final ProblemService problemService;
 
-    public ContentController(ProblemService problemService) {
+    public ProblemController(ProblemService problemService) {
         this.problemService = problemService;
     }
 
     //user view
     @GetMapping
-    public ResponseEntity<Page<Problem>> getProblems(
+    public ResponseEntity<Page<ProblemDTO>> getProblems(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String difficulty,
             @RequestParam(defaultValue = "0") int page,
@@ -39,7 +42,13 @@ public class ContentController {
 
     //internal
     @GetMapping("/{id}/full")
-    public ResponseEntity<Problem> getFullDetail(@PathVariable String id){
+    public ResponseEntity<?> getFullDetail(
+            @PathVariable String id,
+            @RequestHeader(value = "X-Internal-Secret", defaultValue = "") String secretKey
+    ){
+        if (!internalSecret.equals(secretKey)) {
+            return ResponseEntity.status(403).body("Internal Access Only");
+        }
         return ResponseEntity.ok(problemService.getProblemFull(id));
     }
     //admin

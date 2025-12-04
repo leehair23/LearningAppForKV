@@ -49,24 +49,36 @@ public class ContestService {
     }
     public ContestDTO getContestDetail(String id){
         Contest contest = contestRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Contest not found"));
+                .orElseThrow(() -> new RuntimeException("Contest not found"));
+
         ContestDTO dto = new ContestDTO();
         dto.setId(contest.getId());
         dto.setTitle(contest.getTitle());
+        dto.setDescription(contest.getDescription());
         dto.setStartTime(contest.getStartTime());
         dto.setEndTime(contest.getEndTime());
-        if (Instant.now().isBefore(contest.getStartTime())) {
-            dto.setProblems(new ArrayList<>());
-            dto.setStatus("UPCOMING");
-        } else {
-            List<ProblemDTO> problems = contest.getProblemIds().stream()
-                    .map(problemService::getProblemForUser)
-                    .collect(Collectors.toList());
-            dto.setProblems(problems);
 
-            if (Instant.now().isAfter(contest.getEndTime())) dto.setStatus("ENDED");
-            else dto.setStatus("RUNNING");
+        Instant now = Instant.now();
+        if (now.isBefore(contest.getStartTime())) {
+            dto.setStatus("UPCOMING");
+            dto.setProblems(new ArrayList<>());
+        } else if (now.isAfter(contest.getEndTime())) {
+            dto.setStatus("ENDED");
+            dto.setProblems(fetchProblems(contest.getProblemIds()));
+        } else {
+            dto.setStatus("RUNNING");
+            dto.setProblems(fetchProblems(contest.getProblemIds()));
         }
+
+        // 2. Tính duration
+        long duration = java.time.Duration.between(contest.getStartTime(), contest.getEndTime()).toMinutes();
+        dto.setDurationMinutes(duration);
+
         return dto;
+    }
+    private List<ProblemDTO> fetchProblems(List<String>ids){
+        return ids.stream()
+                .map(problemService::getProblemForUser)
+                .collect(Collectors.toList());
     }
 }
