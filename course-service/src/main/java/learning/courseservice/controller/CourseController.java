@@ -59,6 +59,26 @@ public class CourseController {
         }
         return ResponseEntity.ok(courseService.addChapter(courseId, body.get("title")));
     }
+    @PutMapping("{courseId}/chapters/{chapterId}")
+    public ResponseEntity<Course> updateChatper(
+            @PathVariable String courseId,
+            @PathVariable String chapterId,
+            @RequestBody Map<String, String> body,
+            @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
+    ){
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(courseService.updateChapter(courseId, chapterId, body.get("title")));
+    }
+    @DeleteMapping("/{courseId}/chapters/{chapterId}")
+    public ResponseEntity<Course> deleteChatper(
+            @PathVariable String courseId,
+            @PathVariable String chapterId,
+            @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
+    ){
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        courseService.deleteChapter(courseId, chapterId);
+        return ResponseEntity.ok().build();
+    }
     @PutMapping("/{id}")
     public ResponseEntity<Course> updateCourse(
             @PathVariable String id,
@@ -88,7 +108,7 @@ public class CourseController {
             @RequestBody Lesson lesson,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
-
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(courseService.addLesson(courseId, chapterId, lesson));
     }
     @PutMapping("/lessons/{lessonId}")
@@ -97,6 +117,7 @@ public class CourseController {
             @RequestBody Lesson lesson,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(courseService.updateLesson(lessonId, lesson));
     }
     @DeleteMapping("/{courseId}/lessons/{lessonId}")
@@ -105,6 +126,7 @@ public class CourseController {
             @PathVariable String lessonId,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         courseService.deleteLesson(courseId, lessonId);
         return ResponseEntity.ok().build();
     }
