@@ -5,4 +5,5 @@ export type T_AuthPayload = {
   exp: number;
   iat: number;
   email: string;
+  userId: string;
 };

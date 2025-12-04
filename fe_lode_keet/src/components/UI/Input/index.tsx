@@ -6,13 +6,15 @@ interface InputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   value: string;
   name: string;
-  onChange: (value: string) => void;
-  onEnter?: () => void;
   autoFocus?: boolean;
   className?: string;
   type?: string;
   error?: string;
   showError?: boolean;
+  onChange: (value: string) => void;
+  onEnter?: () => void;
+  onDirty?: () => void;
+  onTouched?: () => void;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -25,6 +27,8 @@ const Input: React.FC<InputProps> = ({
   error = "",
   showError = false,
   name,
+  onDirty,
+  onTouched,
   ...props
 }) => {
   const [dirty, setDirty] = useState(false);
@@ -44,15 +48,18 @@ const Input: React.FC<InputProps> = ({
 
     if (!dirty && newValue !== "") {
       setDirty(true);
+      onDirty?.();
     }
   };
 
   const handleBlur = () => {
     setTouched(true);
+    onTouched?.();
   };
 
   const handleFocus = () => {
     setTouched(true);
+    onTouched?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -63,7 +70,7 @@ const Input: React.FC<InputProps> = ({
 
   // Base styles
   const baseStyles = `
-    w-full px-3 py-2 m-4 border border-gray-300 rounded-md shadow-sm
+    px-3 py-2 mx-0 my-2 border border-gray-300 rounded-md shadow-sm
     placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
     transition-colors duration-200 ease-in-out
     disabled:bg-gray-100 disabled:cursor-not-allowed

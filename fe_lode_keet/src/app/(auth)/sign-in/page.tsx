@@ -1,10 +1,7 @@
 "use client";
 
+import SigninForm from "@/components/Auth/LoginForm";
 import Container from "@/components/UI/Container";
-import Divider from "@/components/UI/Divider";
-import Footer from "@/components/UI/Footer";
-import Input from "@/components/UI/Input";
-import Navbar from "@/components/UI/Navbar";
 import { useState } from "react";
 
 export default function Dashboard() {
@@ -14,25 +11,12 @@ export default function Dashboard() {
   };
   return (
     <>
-      <Navbar></Navbar>
       <Container>
-        <div className="h-auto rounded bg-amber-500">Left small container</div>
-        <div className="h-auto rounded bg-gray-300 lg:col-span-2">
-          <div>
-            <label htmlFor="">Sign in hehehe</label>
-            <Input
-              value={searchValue}
-              onChange={setSearchValue}
-              onEnter={handleSearch}
-              name="password-input"
-              placeholder="Enter password"
-              autoFocus
-              type="password"></Input>
-          </div>
+        <div className="h-auto rounded bg-amber-500"></div>
+        <div className="h-auto rounded flex items-center justify-center bg-gray-300 lg:col-span-2">
+          <SigninForm />
         </div>
       </Container>
-      <Divider></Divider>
-      <Footer></Footer>
     </>
   );
 }

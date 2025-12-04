@@ -1,21 +1,29 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { Constants } from "@/common/constants";
-import { authStore } from "@/stores/authStore";
+import Footer from "@/components/UI/Footer";
+import Divider from "@/components/UI/Divider";
+import Navbar from "@/components/UI/Navbar";
 
-export default async function Home() {
-  const cookieStore = await cookies();
-  const token = authStore().accessToken;
+export default function Home({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   const { ROUTES } = Constants;
 
-  /**
-   * NOTE: this is wrong approach, due to Zustand being a client side only
-   * => need to find a better way, probably in middlewares we will use localStorage
-   * => it would not be the best but time is not on our side
-   */
+  const accessToken = localStorage.getItem(
+    Constants.LOCAL_STORAGE_KEYS.ACC_TOKEN
+  );
 
-  // Check for token is not valid, then redirect to /signin
-  redirect(ROUTES.PUBLIC.SIGN_IN);
-
-  // Check for token is valid, then redirect to /dashboard
+  if (!accessToken) {
+    redirect(ROUTES.PUBLIC.SIGN_IN);
+  }
+  return (
+    <>
+      <Navbar></Navbar>
+      {children}
+      <Divider></Divider>
+      <Footer></Footer>
+    </>
+  );
 }

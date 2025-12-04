@@ -1,0 +1,57 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-ApiGatewayApplication<api>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.api.ApiGatewayApplication",
+      "projectName": "api",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=65222 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=api"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-AuthServiceApplication<auth>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.auth.AuthServiceApplication",
+      "projectName": "auth",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=65274 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=auth"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-ConfigServerApplication<config>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.config.ConfigServerApplication",
+      "projectName": "config",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=65088 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=config"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-EurekaServiceApplication<eureka>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.eureka.EurekaServiceApplication",
+      "projectName": "eureka",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-UserServicesApplication<user-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.userservices.UserServicesApplication",
+      "projectName": "user-service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
