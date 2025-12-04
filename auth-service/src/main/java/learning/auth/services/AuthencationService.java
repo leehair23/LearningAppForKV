@@ -12,11 +12,13 @@ import learning.auth.entity.RegisterRequest;
 import learning.auth.entity.Role;
 import learning.auth.entity.User;
 import learning.auth.jwt.JwtService;
+import learning.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,12 @@ public class AuthencationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
+        if(userRepository.existsByEmail(request.getEmail())){
+            throw new UsernameNotFoundException("Email already in use");
+        }
+        if(userRepository.existsByUsername(request.getUsername())){
+            throw new UsernameNotFoundException("Username already in use");
+        }
         var user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -123,6 +131,7 @@ public class AuthencationService {
 
     private Map<String, Object> getExtraClaims(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("userId", user.getId());
         extraClaims.put("email", user.getEmail());
         extraClaims.put("role", user.getRole().name());
         return extraClaims;

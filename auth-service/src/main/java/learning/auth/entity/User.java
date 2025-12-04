@@ -20,8 +20,8 @@ import java.util.List;
 @Table(name = "Users")
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
     @Column(unique = true, nullable = false)
     private String username;
 
@@ -31,6 +31,10 @@ public class User implements UserDetails {
     private String email;
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Builder.Default
+    @Column(columnDefinition = "boolean default true")
+    private Boolean enabled = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -46,5 +50,7 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled(){
+        return enabled;
+    }
 }

@@ -1,7 +1,7 @@
 package learning.auth.config;
 
 import org.springframework.security.authentication.AuthenticationProvider;
-import learning.auth.services.UserRepository;
+import learning.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
