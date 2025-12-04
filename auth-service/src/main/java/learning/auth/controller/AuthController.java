@@ -6,7 +6,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import learning.auth.entity.AuthenticationRequest;
 import learning.auth.entity.AuthenticationResponse;
 import learning.auth.entity.RegisterRequest;
+import learning.auth.entity.Role;
 import learning.auth.services.AuthencationService;
+import learning.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class AuthController {
     private final AuthencationService service;
+    private final UserRepository userRepository;
 
     @PostMapping("/signup")
     public ResponseEntity<AuthenticationResponse>register(@RequestBody RegisterRequest request){
@@ -42,5 +45,34 @@ public class AuthController {
     @PostMapping("/signout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
         return ResponseEntity.ok("logout successfully");
+    }
+
+    //user-service stuff (CRUD)
+    @PutMapping("/users/{username}/status")
+    public ResponseEntity<?> changeStatus(@PathVariable String username, @RequestParam boolean enabled){
+        var user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new RuntimeException("username not found"));
+        user.setEnabled(enabled);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?>updateUser(
+            @PathVariable String id,
+            @RequestBody Map<String, String> body
+    ){
+        var user = userRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Not found " + id));
+        if (body.containsKey("email")) user.setEmail(body.get("email"));
+        if (body.containsKey("role")) user.setRole(Role.valueOf(body.get("role")));
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable String id){
+        var user = userRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Not found " + id));
+        userRepository.delete(user);
+        return ResponseEntity.ok().build();
     }
 }

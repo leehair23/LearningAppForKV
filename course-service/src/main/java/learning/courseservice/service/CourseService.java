@@ -51,6 +51,41 @@ public class CourseService {
         course.getChapters().add(chapter);
         return courseRepository.save(course);
     }
+    public Course updateChapter(String courseId, String chapterId, String newTitle) {
+        Course course = getCourseDetail(courseId);
+
+        if (course.getChapters() != null) {
+            for (Chapter chapter : course.getChapters()) {
+                if (chapter.getId().equals(chapterId)) {
+                    chapter.setTitle(newTitle);
+                    break;
+                }
+            }
+            course.setUpdatedAt(java.time.Instant.now());
+            return courseRepository.save(course);
+        }
+        throw new RuntimeException("Chapter not found");
+    }
+    @Transactional
+    public void deleteChapter(String courseId, String chapterId) {
+        Course course = getCourseDetail(courseId);
+
+        if (course.getChapters() != null) {
+            Chapter targetChapter = course.getChapters().stream()
+                    .filter(c -> c.getId().equals(chapterId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Chapter not found"));
+
+            for (LessonSummary summary : targetChapter.getLessons()) {
+                lessonRepository.deleteById(summary.getId());
+            }
+
+            course.getChapters().remove(targetChapter);
+
+            course.setUpdatedAt(java.time.Instant.now());
+            courseRepository.save(course);
+        }
+    }
     public Course updateCourse(String id, Course updateData){
         Course course = getCourseDetail(id);
 

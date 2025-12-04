@@ -31,7 +31,7 @@ spring:
                       uri: lb://user-service
                       predicates:
                         - Path=/app/users/**, /app/user/**
-                        - Method=POST,PUT,DELETE
+                        - Method=POST,DELETE
                       filters:
                         - StripPrefix=1
                         - Authentication=ADMIN
@@ -52,6 +52,13 @@ spring:
                       filters:
                         - StripPrefix=1
                         - Authentication=ADMIN
+                    - id: content-internal-block
+                      uri: no://op
+                      predicates:
+                        - Path=/app/problems/*/full
+                      filters:
+                        - SetStatus=403
+                      order: -1
                     - id: content-service
                       uri: lb://content-service
                       predicates:

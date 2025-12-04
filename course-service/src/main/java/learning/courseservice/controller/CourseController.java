@@ -6,6 +6,7 @@ import learning.courseservice.service.CourseService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,13 +47,37 @@ public class CourseController {
     //Course
     @PostMapping
     public ResponseEntity<Course> createCourse(@RequestBody Course course, @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role){
-
+        if(!"ADMIN".equals(role)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(courseService.createCourse(course));
     }
     @PostMapping("/{courseId}/chapters")
     public ResponseEntity<Course> addChapter(@PathVariable String courseId, @RequestBody Map<String, String> body, @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role){
-
+        if(!"ADMIN".equals(role)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(courseService.addChapter(courseId, body.get("title")));
+    }
+    @PutMapping("{courseId}/chapters/{chapterId}")
+    public ResponseEntity<Course> updateChatper(
+            @PathVariable String courseId,
+            @PathVariable String chapterId,
+            @RequestBody Map<String, String> body,
+            @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
+    ){
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(courseService.updateChapter(courseId, chapterId, body.get("title")));
+    }
+    @DeleteMapping("/{courseId}/chapters/{chapterId}")
+    public ResponseEntity<Course> deleteChatper(
+            @PathVariable String courseId,
+            @PathVariable String chapterId,
+            @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
+    ){
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        courseService.deleteChapter(courseId, chapterId);
+        return ResponseEntity.ok().build();
     }
     @PutMapping("/{id}")
     public ResponseEntity<Course> updateCourse(
@@ -60,12 +85,16 @@ public class CourseController {
             @RequestBody Course course,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
-
+        if(!"ADMIN".equals(role)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(courseService.updateCourse(id, course));
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCourse(@PathVariable String id, @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role) {
-
+        if(!"ADMIN".equals(role)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         courseService.deleteCourse(id);
         return ResponseEntity.ok().build();
     }
@@ -79,7 +108,7 @@ public class CourseController {
             @RequestBody Lesson lesson,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
-
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(courseService.addLesson(courseId, chapterId, lesson));
     }
     @PutMapping("/lessons/{lessonId}")
@@ -88,6 +117,7 @@ public class CourseController {
             @RequestBody Lesson lesson,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(courseService.updateLesson(lessonId, lesson));
     }
     @DeleteMapping("/{courseId}/lessons/{lessonId}")
@@ -96,6 +126,7 @@ public class CourseController {
             @PathVariable String lessonId,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
+        if(!"ADMIN".equals(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         courseService.deleteLesson(courseId, lessonId);
         return ResponseEntity.ok().build();
     }
