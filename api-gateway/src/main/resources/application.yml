@@ -15,6 +15,7 @@ spring:
                           allowedMethods: "*"
                           allowedHeaders: "*"
                           allowCredentials: true
+
           discovery:
             locator:
               enabled: true
@@ -90,11 +91,13 @@ spring:
                         - Path=/app/submissions/**, /app/playground/**
                       filters:
                         - StripPrefix=1
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Vary, RETAIN_FIRST
 management:
   endpoints:
     web:
       exposure:
-        include: "*" # Mở tất cả (bao gồm gateway, routes, filters...)
+        include: "*"
   endpoint:
     gateway:
       access: unrestricted
