@@ -28,7 +28,7 @@ services:
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-root}
-      MYSQL_DATABASE: your_database
+      MYSQL_DATABASE: auth_db
     ports:
       - "3306:3306"
     volumes:

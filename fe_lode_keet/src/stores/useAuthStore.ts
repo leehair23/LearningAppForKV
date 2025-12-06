@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { AuthState } from "@/common/interfaces";
 import { persist } from "zustand/middleware";
+import { Constants } from "@/common/constants";
+import type { T_UserData } from "@/common/types";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -12,18 +14,38 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       loading: false,
       user: null,
+      isAuthenticated: false,
 
-      setAccessToken: (accessToken: unknown) => {
+      setAuthenticated: (isAuthenticated: boolean) => set({ isAuthenticated }),
+      setAccessToken: (accessToken: string | null) => {
         set({ accessToken });
+        if (accessToken) {
+          localStorage.setItem(
+            Constants.LOCAL_STORAGE_KEYS.ACCESS_TOKEN,
+            accessToken
+          );
+          set({ isAuthenticated: true });
+        } else {
+          localStorage.removeItem(Constants.LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
+          set({ isAuthenticated: false });
+        }
       },
       setLoading: (loading: boolean) => {
         set({ loading });
       },
-      setUser: (userData: unknown) => {
+      setUser: (userData: T_UserData | null) => {
         set({ user: userData });
       },
-      setRefreshToken: (refreshToken: unknown) => {
+      setRefreshToken: (refreshToken: string | null) => {
         set({ refreshToken });
+        if (refreshToken) {
+          localStorage.setItem(
+            Constants.LOCAL_STORAGE_KEYS.REFRESH_TOKEN,
+            refreshToken
+          );
+        } else {
+          localStorage.removeItem(Constants.LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
+        }
       },
       clearState: () => {
         set({
@@ -34,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
           accessToken: null,
           refreshToken: null,
           user: null,
+          isAuthenticated: false,
         });
       },
       setUsername: (username) => set({ username }),
@@ -42,8 +65,10 @@ export const useAuthStore = create<AuthState>()(
       resetForm: () => set({ email: "", password: "", username: "" }),
     }),
     {
-      name: "auth-storage",
-      partialize: (state) => ({ email: state.email }), // Only persist email
+      name: Constants.LOCAL_STORAGE_KEYS.AUTH_STORE,
+      partialize: (state) => ({
+        user: state.user,
+      }),
     }
   )
 );

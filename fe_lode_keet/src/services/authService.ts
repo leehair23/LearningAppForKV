@@ -1,13 +1,12 @@
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Constants } from "@/common/constants";
 import { toast } from "sonner";
-import jwt from "jsonwebtoken";
-import { T_AuthPayload } from "@/common/types";
+import { decode } from "jsonwebtoken";
+import type { T_AuthPayload } from "@/common/types";
+import api from "@/utils/axios";
 
 export class AuthService {
   private static instance: AuthService;
-
-  private JWT_SECRET = process.env.JWT_SECRET!;
 
   // Private constructor for singleton pattern
   private constructor() {}
@@ -27,39 +26,24 @@ export class AuthService {
     try {
       setLoading(true);
 
-      const response = await fetch(`${Constants.BASE_URL}/auth/signup`, {
-        method: Constants.REQUEST_METHODS.POST,
-        headers: Constants.HEADERS,
-        body: JSON.stringify({
-          username,
-          password,
-          email,
-        }),
+      const response = await api.post(`/auth/signup`, {
+        username,
+        password,
+        email,
       });
 
+      console.log(response);
       const { access_token: accessToken, refresh_token: refreshToken } =
-        await response.json();
+        await response.data;
 
       const parsedDataFromAccToken: T_AuthPayload | null =
-        this.verifyToken(accessToken);
+        this.decodeToken(accessToken);
 
-      const parsedDataFromRefToken: T_AuthPayload | null =
-        this.verifyToken(refreshToken);
-
-      if (parsedDataFromAccToken && parsedDataFromRefToken) {
+      if (parsedDataFromAccToken) {
         const { role, sub, email, userId } = parsedDataFromAccToken;
         setUser({ role, email, sub, userId, username });
         setAccessToken(accessToken);
         setRefreshToken(refreshToken);
-        localStorage.clear();
-        localStorage.setItem(
-          Constants.LOCAL_STORAGE_KEYS.ACC_TOKEN,
-          accessToken
-        );
-        localStorage.setItem(
-          Constants.LOCAL_STORAGE_KEYS.REF_tOKEN,
-          refreshToken
-        );
         toast.success("Sign up successfully✅");
       } else {
         throw Error("Null token, please check");
@@ -79,49 +63,34 @@ export class AuthService {
       useAuthStore.getState();
     try {
       setLoading(true);
+      // const response = await api.post(`/auth/signin`, {
+      //   username,
+      //   password,
+      // });
 
-      const response = await fetch(`${Constants.BASE_URL}/auth/signin`, {
-        method: Constants.REQUEST_METHODS.POST,
-        headers: Constants.HEADERS,
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
+      // const { access_token, refresh_token } = await response.data;
 
-      const { access_token: accessToken, refresh_token: refreshToken } =
-        await response.json();
+      // Fake data for testing
+      const access_token =
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtaWtlIiwicm9sZSI6IlVTRVIiLCJpc3MiOiJzZWxmIiwiZXhwIjoxNzY1MTI1NDY2LCJpYXQiOjE3NjUwMzkwNjYsInVzZXJJZCI6Ijg1MGMyMjk2LWViZTktNDE5Mi04NDQxLTdiM2RiNWJjOTU4ZCIsImVtYWlsIjoiIG1pbmtlbmRhbmcyQGV4bS5jb20gIn0.vNBPZOzkJzP-YHho1fZUhJ0rxHw2P15SpH8r4jaxsQs";
+
+      const refresh_token =
+        "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzZWxmIiwic3ViIjoibWlrZSIsImV4cCI6MTc2NTY0Mzg2NiwiaWF0IjoxNzY1MDM5MDY2fQ.YnN5jaKs7UFcCN6NAdplSIg0aeZQV3E1u_Sk2u83EJE";
 
       const parsedDataFromAccToken: T_AuthPayload | null =
-        this.verifyToken(accessToken);
+        this.decodeToken(access_token);
 
-      const parsedDataFromRefToken: T_AuthPayload | null =
-        this.verifyToken(refreshToken);
-
-      if (parsedDataFromAccToken && parsedDataFromRefToken) {
+      if (parsedDataFromAccToken) {
         const { role, sub, email, userId } = parsedDataFromAccToken;
-        setUser({ role, email, sub, userId, username });
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
-
-        localStorage.clear();
-        localStorage.setItem(
-          Constants.LOCAL_STORAGE_KEYS.ACC_TOKEN,
-          accessToken
-        );
-        localStorage.setItem(
-          Constants.LOCAL_STORAGE_KEYS.REF_tOKEN,
-          refreshToken
-        );
-
-        toast.success("Sign in successfully✅");
+        setUser({ role, email, sub, userId });
+        setAccessToken(access_token);
+        setRefreshToken(refresh_token);
       } else {
         throw Error("Null token, please check");
       }
-      return;
+      return true;
     } catch (error) {
       console.error(error);
-      toast.error("❌Error occurred during signing up!");
     } finally {
       setLoading(false);
     }
@@ -136,7 +105,6 @@ export class AuthService {
       localStorage.clear();
       return await fetch(`${Constants.BASE_URL}/auth/signin`, {
         method: Constants.REQUEST_METHODS.GET,
-        headers: Constants.HEADERS,
       });
     } catch (error) {
       console.error(error);
@@ -196,9 +164,10 @@ export class AuthService {
   }
 
   // Verify token method
-  public verifyToken(token: string): T_AuthPayload | null {
+  public decodeToken(token: string): T_AuthPayload | null {
     try {
-      return jwt.verify(token, this.JWT_SECRET) as T_AuthPayload;
+      const data = decode(token) as T_AuthPayload;
+      return data;
     } catch (error) {
       console.error("JWT verification failed:", error);
       return null;

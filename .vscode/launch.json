@@ -41,7 +41,8 @@
       "mainClass": "learning.eureka.EurekaServiceApplication",
       "projectName": "eureka",
       "args": "",
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=52500 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=eureka"
     },
     {
       "type": "java",
@@ -50,6 +51,27 @@
       "cwd": "${workspaceFolder}",
       "mainClass": "learning.userservices.UserServicesApplication",
       "projectName": "user-service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=60095 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=user-service"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-SubmissionServicesApplication<submission-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.submissionservices.SubmissionServicesApplication",
+      "projectName": "submission-service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-RuntimeServiceApplication<runtime-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.smartcode.runtimeservice.RuntimeServiceApplication",
+      "projectName": "runtime-service",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
     }

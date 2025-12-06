@@ -1,18 +1,15 @@
 export class Constants {
-  public static readonly BASE_URL = "http://localhost:8080/app";
+  public static readonly BASE_URL = import.meta.env.VITE_BASE_URL;
   public static readonly REQUEST_METHODS = {
     POST: "POST",
     GET: "GET",
     PUT: "PUT",
     PATCH: "PATCH",
   };
-  public static readonly HEADERS = {
-    "Content-Type": "application/json",
-  };
+
   public static readonly ROUTES = {
     PUBLIC: {
       HOME: "/",
-      ABOUT: "/about",
       SIGN_IN: "/sign-in",
       SIGN_UP: "/sign-up",
       FORGOT_PASSWORD: "/forgot-password",
@@ -46,7 +43,8 @@ export class Constants {
   };
   public static readonly ROUTE_TYPE = typeof this.ROUTES;
   public static readonly LOCAL_STORAGE_KEYS = {
-    ACC_TOKEN: "access_token",
-    REF_tOKEN: "refresh_token",
+    AUTH_STORE: "auth_storage",
+    ACCESS_TOKEN: "accessToken",
+    REFRESH_TOKEN: "refreshToken",
   };
 }
