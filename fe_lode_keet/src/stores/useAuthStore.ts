@@ -1,134 +1,74 @@
 import { create } from "zustand";
-import { toast } from "sonner";
 import type { AuthState } from "@/common/interfaces";
+import { persist } from "zustand/middleware";
+import { Constants } from "@/common/constants";
+import type { T_UserData } from "@/common/types";
 
-function mockGenerateAccessTokenAsync(username: string, password: string) {
-  return new Promise((resolve) => {
-    setTimeout(function () {
-      console.log("Mock accessToken generated here");
-      const token = `${username}_accessToken_hehehe`;
-      resolve(token);
-    }, 100);
-  });
-}
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      email: "",
+      password: "",
+      username: "",
+      accessToken: null,
+      refreshToken: null,
+      loading: false,
+      user: null,
+      isAuthenticated: false,
 
-function mockSignUp(username: string, password: string, email: string) {
-  return new Promise((resolve) => {
-    setTimeout(function () {
-      console.log("Mock Sign up here");
-      const userData = {
-        id: "id123ZxC",
-        username,
-        email,
-      };
-      resolve(userData);
-    }, 100);
-  });
-}
-
-function mockGenerateUserData() {
-  return new Promise((resolve) => {
-    setTimeout(function () {
-      console.log("Mock user data here");
-      const userData = {
-        id: "id123ZxC",
-        username: "Niga",
-        email: "nigacoding@gmail.com",
-      };
-      resolve(userData);
-    }, 100);
-  });
-}
-
-export const useAuthStore = create<AuthState>((set, get) => ({
-  accessToken: null,
-  loading: false,
-  user: null,
-  setAccessToken: (accessToken) => {
-    set({ accessToken });
-  },
-  clearState: () => {
-    set({ accessToken: null, user: null, loading: false });
-  },
-  fetchUser: async () => {
-    try {
-      set({ loading: true });
-      const user = await mockGenerateUserData();
-
-      set({ user });
-    } catch (error) {
-      console.error(error);
-      set({ user: null, accessToken: null });
-      toast.error("❌Error occurred during fetching user data!");
-    } finally {
-      set({ loading: false });
+      setAuthenticated: (isAuthenticated: boolean) => set({ isAuthenticated }),
+      setAccessToken: (accessToken: string | null) => {
+        set({ accessToken });
+        if (accessToken) {
+          localStorage.setItem(
+            Constants.LOCAL_STORAGE_KEYS.ACCESS_TOKEN,
+            accessToken
+          );
+          set({ isAuthenticated: true });
+        } else {
+          localStorage.removeItem(Constants.LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
+          set({ isAuthenticated: false });
+        }
+      },
+      setLoading: (loading: boolean) => {
+        set({ loading });
+      },
+      setUser: (userData: T_UserData | null) => {
+        set({ user: userData });
+      },
+      setRefreshToken: (refreshToken: string | null) => {
+        set({ refreshToken });
+        if (refreshToken) {
+          localStorage.setItem(
+            Constants.LOCAL_STORAGE_KEYS.REFRESH_TOKEN,
+            refreshToken
+          );
+        } else {
+          localStorage.removeItem(Constants.LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
+        }
+      },
+      clearState: () => {
+        set({
+          email: "",
+          password: "",
+          username: "",
+          loading: false,
+          accessToken: null,
+          refreshToken: null,
+          user: null,
+          isAuthenticated: false,
+        });
+      },
+      setUsername: (username) => set({ username }),
+      setEmail: (email) => set({ email }),
+      setPassword: (password) => set({ password }),
+      resetForm: () => set({ email: "", password: "", username: "" }),
+    }),
+    {
+      name: Constants.LOCAL_STORAGE_KEYS.AUTH_STORE,
+      partialize: (state) => ({
+        user: state.user,
+      }),
     }
-  },
-  signUp: async (username, password, email) => {
-    try {
-      set({ loading: true });
-
-      await mockSignUp(username, password, email);
-
-      toast.success("Sign in successfully✅");
-    } catch (error) {
-      console.error(error);
-      toast.error("Đăng ký không thành công");
-    } finally {
-      set({ loading: false });
-    }
-  },
-  signIn: async (username, password) => {
-    try {
-      set({ loading: true });
-
-      // Signin here
-      const accessToken = await mockGenerateAccessTokenAsync(
-        username,
-        password
-      );
-      get().setAccessToken(accessToken);
-
-      await get().fetchUser();
-
-      toast.success(`Welcome back, ${username} 🙌`);
-    } catch (error) {
-      console.error(error);
-      toast.error("❌Error occurred during Signing in!");
-    } finally {
-      set({ loading: false });
-    }
-  },
-  signOut: async () => {
-    try {
-      get().clearState();
-      toast.success("Good bye🤞");
-    } catch (error) {
-      console.error(error);
-      toast.error("❌Error occurred during Logging out!");
-    } finally {
-      set({ loading: false });
-    }
-  },
-  renewToken: async () => {
-    try {
-      set({ loading: true });
-      const { user, fetchUser, setAccessToken } = get();
-      const renewedAccessToken = await mockGenerateAccessTokenAsync(
-        "renew_accessToken",
-        ""
-      );
-
-      setAccessToken(renewedAccessToken);
-
-      if (user) {
-        await fetchUser();
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("❌Session is expired, please Sign in again!");
-    } finally {
-      set({ loading: false });
-    }
-  },
-}));
+  )
+);
