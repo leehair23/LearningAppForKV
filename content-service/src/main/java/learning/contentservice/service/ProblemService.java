@@ -11,7 +11,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,20 +27,30 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProblemService {
     private final ProblemRepository problemRepository;
+    private final MongoTemplate mongoTemplate;
     //public view
-    public Page<ProblemDTO> getProblems(String keyword, String difficulty, Pageable pageable) {
-        Page<Problem> rawPage;
-
+    public Page<ProblemDTO> getProblems(String keyword, String difficulty, List<String>tags, Pageable pageable) {
+        Query query = new Query();
+        // 1. Keyword
         if (keyword != null && !keyword.isEmpty()) {
-            if (difficulty != null) {
-                rawPage = problemRepository.findByTitleContainingIgnoreCaseAndDifficulty(keyword, difficulty, pageable);
-            } else {
-                rawPage = problemRepository.findByTitleContainingIgnoreCase(keyword, pageable);
-            }
-        } else {
-            rawPage = problemRepository.findAll(pageable);
+            query.addCriteria(Criteria.where("title").regex(keyword, "i"));
         }
-        return rawPage.map(this::mapToDTO);
+
+        // 2. Difficulty
+        if (difficulty != null && !difficulty.isEmpty()) {
+            query.addCriteria(Criteria.where("difficulty").is(difficulty));
+        }
+
+        // 3. Tags
+        if (tags != null && !tags.isEmpty()) {
+            query.addCriteria(Criteria.where("tags").in(tags));
+        }
+        long total = mongoTemplate.count(query, Problem.class);
+        query.with(pageable);
+        List<Problem> problems = mongoTemplate.find(query, Problem.class);
+        List<ProblemDTO> dtos = problems.stream().map(this::mapToDTO).collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageable, total);
     }
     @Cacheable(value = "problem", key = "#id")
     public ProblemDTO getProblemForUser(String id){
