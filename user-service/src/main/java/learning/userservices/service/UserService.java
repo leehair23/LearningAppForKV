@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -162,6 +163,15 @@ public class UserService {
         } catch (Exception e) {
             log.info(e.getMessage());
         }
+    }
+    public Map<String, Object> getAnalytics(){
+        long totalUsers = userRepository.count();
+        long newUsersToday = userRepository.countByCreatedAtAfter(Instant.now().minus(1, ChronoUnit.DAYS));
+
+        return Map.of(
+                "totalUsers", totalUsers,
+                "newUsersToday", newUsersToday
+        );
     }
     private Response mapToDTO(UserProfile user){
         return Response.builder()
