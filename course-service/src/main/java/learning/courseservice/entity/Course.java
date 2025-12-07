@@ -16,6 +16,7 @@ public class Course {
     private String description;
     private String thumbnail;
     private String level;
+    private String language;
     private Double price;
 
     private List<Chapter> chapters;

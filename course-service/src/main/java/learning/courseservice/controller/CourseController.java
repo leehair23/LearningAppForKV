@@ -34,12 +34,13 @@ public class CourseController {
     public ResponseEntity<Page<Course>> getAllOrSearch(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String level,
+            @RequestParam(required = false) String language,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy
     ){
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy));
-        return ResponseEntity.ok(courseService.searchCourses(q, level, pageRequest));
+        return ResponseEntity.ok(courseService.searchCourses(q, level, language, pageRequest));
     }
 
     //admin API

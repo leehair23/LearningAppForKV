@@ -8,7 +8,11 @@ import learning.courseservice.repository.CourseRepository;
 import learning.courseservice.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +26,7 @@ import java.util.UUID;
 public class CourseService {
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
+    private final MongoTemplate mongoTemplate;
 
 
     //public stuff
@@ -107,16 +112,25 @@ public class CourseService {
         lessonRepository.deleteByCourseId(id);
         courseRepository.deleteById(id);
     }
-    public Page<Course> searchCourses(String keyword, String level, Pageable pageable){
-        if(keyword != null && !keyword.isEmpty()){
-            return courseRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+    public Page<Course> searchCourses(String keyword, String level, String language, Pageable pageable){
+        Query query = new Query();
+        if (keyword != null && !keyword.isEmpty()) {
+            // Dùng Regex để tìm kiếm không phân biệt hoa thường ('i')
+            Criteria nameCriteria = Criteria.where("title").regex(keyword, "i");
+            Criteria descCriteria = Criteria.where("description").regex(keyword, "i");
+            query.addCriteria(new Criteria().orOperator(nameCriteria, descCriteria));
         }
-        else if(level != null && !level.isEmpty()){
-            return courseRepository.findByLevel(level, pageable);
+        if (level != null && !level.isEmpty()) {
+            query.addCriteria(Criteria.where("level").is(level));
         }
-        else {
-            return courseRepository.findAll(pageable);
+        if (language != null && !language.isEmpty()) {
+            query.addCriteria(Criteria.where("language").is(language.toLowerCase()));
         }
+        long total = mongoTemplate.count(query, Course.class);
+        query.with(pageable);
+        List<Course> courses = mongoTemplate.find(query, Course.class);
+
+        return new PageImpl<>(courses, pageable, total);
     }
 
     //CRUD lesson
