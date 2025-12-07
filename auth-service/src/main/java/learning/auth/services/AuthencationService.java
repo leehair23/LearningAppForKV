@@ -5,13 +5,10 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import jakarta.servlet.http.HttpServletRequest;
-import learning.auth.entity.AuthenticationRequest;
-import learning.auth.entity.AuthenticationResponse;
+import learning.auth.entity.*;
 
-import learning.auth.entity.RegisterRequest;
-import learning.auth.entity.Role;
-import learning.auth.entity.User;
 import learning.auth.jwt.JwtService;
+import learning.auth.repository.PasswordResetTokenRepository;
 import learning.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +18,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +33,8 @@ public class AuthencationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
     public AuthenticationResponse register(RegisterRequest request) {
         if(userRepository.existsByEmail(request.getEmail())){
@@ -129,6 +128,43 @@ public class AuthencationService {
         return null;
     }
 
+    @Transactional
+    public void forgotPassword(String email){
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new RuntimeException("Mail not found"));
+        passwordResetTokenRepository.deleteByUser(user);
+
+        String otp = generateVerificationCode();
+
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(otp)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusMinutes(15))
+                .build();
+        passwordResetTokenRepository.save(resetToken);
+        emailService.sendResetLink(email, otp);
+    }
+    @Transactional
+    public void resetPassword(String email,String otp, String newPassword){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Invalid Request"));
+
+        if (!resetToken.getToken().equals(otp)) {
+            throw new RuntimeException("Invalid OTP");
+        }
+
+        if (resetToken.isExpired()) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new RuntimeException("OTP has expired");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        passwordResetTokenRepository.delete(resetToken);
+    }
+
     private Map<String, Object> getExtraClaims(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("userId", user.getId());
@@ -145,5 +181,10 @@ public class AuthencationService {
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+    private String generateVerificationCode(){
+        Random random = new Random();
+        int code = random.nextInt(900000) + 100000;
+        return String.valueOf(code);
     }
 }
