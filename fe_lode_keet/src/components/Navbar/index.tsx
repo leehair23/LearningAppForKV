@@ -12,9 +12,9 @@ const Navbar = () => {
           </div>
           <nav className="hidden md:flex gap-6">
             <Link
-              to={Constants.ROUTES.PUBLIC.HOME}
+              to={Constants.ROUTES.DASHBOARD.HOME}
               className="text-white-700 hover:text-white-900 transition-colors font-bold">
-              Home
+              Dashboard
             </Link>{" "}
             <Link
               to={Constants.ROUTES.DASHBOARD.COURSES}
