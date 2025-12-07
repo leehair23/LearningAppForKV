@@ -98,6 +98,7 @@ public class CourseService {
         if (updateData.getDescription() != null) course.setDescription(updateData.getDescription());
         if (updateData.getThumbnail() != null) course.setThumbnail(updateData.getThumbnail());
         if (updateData.getLevel() != null) course.setLevel(updateData.getLevel());
+        if (updateData.getLanguage() != null) course.setLanguage(updateData.getLanguage());
         if (updateData.getPrice() != null) course.setPrice(updateData.getPrice());
         if (updateData.getIsPublished() != null) course.setIsPublished(updateData.getIsPublished());
 
@@ -121,10 +122,10 @@ public class CourseService {
             query.addCriteria(new Criteria().orOperator(nameCriteria, descCriteria));
         }
         if (level != null && !level.isEmpty()) {
-            query.addCriteria(Criteria.where("level").is(level));
+            query.addCriteria(Criteria.where("level").regex("^" + level + "$", "i"));
         }
         if (language != null && !language.isEmpty()) {
-            query.addCriteria(Criteria.where("language").is(language.toLowerCase()));
+            query.addCriteria(Criteria.where("language").regex("^" + language + "$", "i"));
         }
         long total = mongoTemplate.count(query, Course.class);
         query.with(pageable);
