@@ -5,6 +5,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     ca-certificates \
     coreutils \
+    time \
  && rm -rf /var/lib/apt/lists/*
 
 # non-root user

@@ -8,6 +8,7 @@ RUN apt-get update && \
         ca-certificates \
         coreutils \
         locales \
+        time \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Fix locale (bắt buộc để stdout không bị buffer + tránh perl warning)
