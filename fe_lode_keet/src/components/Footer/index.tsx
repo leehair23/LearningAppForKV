@@ -1,7 +1,7 @@
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="w-full flex items-center bg-slate-800 justify-center text-center sm:text-left">
+    <footer className="w-full border-t border-white flex items-center bg-slate-800 justify-center text-center sm:text-left ">
       <div className="text-center w-full h-fit px-10 py-7">
         <p className="text-sm text-white sm:text-base">
           Built by my nigga{" "}

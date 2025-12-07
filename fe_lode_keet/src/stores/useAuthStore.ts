@@ -18,7 +18,6 @@ export const useAuthStore = create<AuthState>()(
 
       setAuthenticated: (isAuthenticated: boolean) => set({ isAuthenticated }),
       setAccessToken: (accessToken: string | null) => {
-        set({ accessToken });
         if (accessToken) {
           localStorage.setItem(
             Constants.LOCAL_STORAGE_KEYS.ACCESS_TOKEN,
@@ -29,6 +28,7 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem(Constants.LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
           set({ isAuthenticated: false });
         }
+        set({ accessToken });
       },
       setLoading: (loading: boolean) => {
         set({ loading });
@@ -37,7 +37,6 @@ export const useAuthStore = create<AuthState>()(
         set({ user: userData });
       },
       setRefreshToken: (refreshToken: string | null) => {
-        set({ refreshToken });
         if (refreshToken) {
           localStorage.setItem(
             Constants.LOCAL_STORAGE_KEYS.REFRESH_TOKEN,
@@ -46,6 +45,7 @@ export const useAuthStore = create<AuthState>()(
         } else {
           localStorage.removeItem(Constants.LOCAL_STORAGE_KEYS.REFRESH_TOKEN);
         }
+        set({ refreshToken });
       },
       clearState: () => {
         set({
@@ -58,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
         });
+        localStorage.clear();
       },
       setUsername: (username) => set({ username }),
       setEmail: (email) => set({ email }),
@@ -68,6 +69,7 @@ export const useAuthStore = create<AuthState>()(
       name: Constants.LOCAL_STORAGE_KEYS.AUTH_STORE,
       partialize: (state) => ({
         user: state.user,
+        isAuthenticated: state.isAuthenticated,
       }),
     }
   )

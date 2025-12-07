@@ -1,13 +1,15 @@
 import { Constants } from "@/common/constants";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 export const ProtectedRoute = ({
   redirectTo = Constants.ROUTES.PUBLIC.SIGN_IN,
   requireAuth = true,
+  children,
 }: {
   redirectTo?: string;
   requireAuth?: boolean;
+  children?: React.ReactNode;
 }) => {
   const { isAuthenticated, user } = useAuthStore();
   const location = useLocation();
@@ -30,5 +32,5 @@ export const ProtectedRoute = ({
     return <Navigate to={Constants.ROUTES.DASHBOARD.HOME} replace />;
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 };

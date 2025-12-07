@@ -1,22 +1,29 @@
 import React, { useState } from "react";
-import { loginSchema } from "@/utils/validation";
+import { signupSchema } from "@/utils/validation";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { authService } from "@/services/authService";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Input from "../Input";
 import Button from "../Button";
 import { Constants } from "@/common/constants";
 import { toast } from "sonner";
 
-const SigninForm: React.FC = () => {
-  const { username, password, loading, setUsername, setPassword } =
-    useAuthStore();
+const SignupForm: React.FC = () => {
+  const {
+    username,
+    email,
+    password,
+    loading,
+    setUsername,
+    setEmail,
+    setPassword,
+  } = useAuthStore();
   const navigate = useNavigate();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const checkIsDisabled = loading || !username || !password;
+  const checkIsDisabled = loading || !username || !password || !email;
 
   const validateField = async (field: string, value: string) => {
-    const result = await loginSchema
+    const result = await signupSchema
       .pick({ [field]: true })
       .safeParseAsync({ [field]: value });
 
@@ -49,23 +56,32 @@ const SigninForm: React.FC = () => {
     validateField("password", value);
   };
 
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    validateField("email", value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const result = await loginSchema.safeParseAsync({ username, password });
+    const result = await signupSchema.safeParseAsync({
+      username,
+      password,
+      email,
+    });
 
     if (result.success) {
       setErrors({});
-      const result = await authService.signIn(username, password);
+      const result = await authService.signUp(username, password, email);
       if (result) {
         navigate(Constants.ROUTES.DASHBOARD.HOME);
-        toast.success("Sign in successfully✅");
         return; // Return to stop form submission twice
       }
     } else {
       toast.error("❌Error occurred during signing in!");
       const zodErr = result.error;
       const jsoniFiedErrors = JSON.parse(zodErr.message);
+      console.log(jsoniFiedErrors);
       if (jsoniFiedErrors[0]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -95,7 +111,7 @@ const SigninForm: React.FC = () => {
       {/* Username Field */}
       <div className="mb-6">
         <label
-          htmlFor="email"
+          htmlFor="username"
           className="block text-xl text-white font-semibold mb-1">
           User name
         </label>
@@ -108,6 +124,27 @@ const SigninForm: React.FC = () => {
           placeholder="Enter your user name"
           error={errors.username}
           showError={!!errors.username}
+          autoFocus
+          className="w-full p-3 text-white"
+        />
+      </div>
+
+      {/* Email Field */}
+      <div className="mb-6">
+        <label
+          htmlFor="email"
+          className="block text-xl text-white font-semibold mb-1">
+          Email
+        </label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={email}
+          onChange={handleEmailChange}
+          placeholder="Enter your email"
+          error={errors.email}
+          showError={!!errors.email}
           autoFocus
           className="w-full p-3 text-white"
         />
@@ -134,16 +171,25 @@ const SigninForm: React.FC = () => {
         />
       </div>
 
+      <p className="py-3">
+        Already have an account?{" "}
+        <Link
+          to={Constants.ROUTES.PUBLIC.SIGN_IN}
+          className="text-white-700 hover:text-white-900 transition-colors font-bold">
+          <span>Sign in now</span>
+        </Link>
+      </p>
+
       <Button
         type="submit"
         loading={loading}
         isDisabled={checkIsDisabled}
         variant="primary"
         className="w-full">
-        Sign in
+        Sign up
       </Button>
     </form>
   );
 };
 
-export default SigninForm;
+export default SignupForm;

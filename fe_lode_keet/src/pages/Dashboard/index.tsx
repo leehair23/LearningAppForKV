@@ -1,11 +1,12 @@
-import MainLayout from "@/components/MainLayout";
+import Container from "@/components/Container";
+import DashboardContent from "@/components/DashboardContent";
 import React from "react";
 
 const Dashboard: React.FC = () => {
   return (
-    <MainLayout>
-      <p>Dashboard page</p>
-    </MainLayout>
+    <Container>
+      <DashboardContent />
+    </Container>
   );
 };
 

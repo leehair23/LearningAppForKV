@@ -16,14 +16,11 @@ api.interceptors.request.use(
   (config) => {
     // Skip adding token for auth endpoints
     const isAuthEndpoint = config.url?.includes("/auth/");
-    console.log("Before ::::: ", config.headers);
     if (!isAuthEndpoint && typeof window !== "undefined") {
       // Get token from localStorage OR Zustand store
       const token =
         localStorage.getItem(Constants.LOCAL_STORAGE_KEYS.AUTH_STORE) ||
         useAuthStore.getState().accessToken;
-
-      console.log("interceptor.request ::::: ", token);
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -40,8 +37,21 @@ api.interceptors.request.use(
 // Response interceptor to handle token refresh
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    console.log("Error in Response interceptor*** ", error);
+  async (error) => {
+    const ogRequest = error.config;
+    const refreshToken = localStorage.getItem(
+      Constants.LOCAL_STORAGE_KEYS.REFRESH_TOKEN
+    );
+
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      error.config &&
+      !error.config.__isRetryRequest &&
+      refreshToken
+    ) {
+      ogRequest._retry = true;
+    }
   }
 );
 

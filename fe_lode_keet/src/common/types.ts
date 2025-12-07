@@ -13,4 +13,9 @@ export type T_UserData = {
   role: string;
   sub: string;
   userId: string;
+  username: string;
 };
+
+export type T_LessonType = "CODING" | "QUIZ" | "THEORY"; // Add other types as needed
+
+export type T_CourseLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";

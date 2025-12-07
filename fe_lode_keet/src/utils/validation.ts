@@ -1,3 +1,4 @@
+import { authService } from "@/services/authService";
 import { z } from "zod";
 
 export const loginSchema = z.object({
@@ -14,7 +15,7 @@ export const signupSchema = z.object({
     .min(1, "Username is required")
     .min(3, "Username must be at least 3 characters"),
   email: z.email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(4, "Password must be at least 4 characters"),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

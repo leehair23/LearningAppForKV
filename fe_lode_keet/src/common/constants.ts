@@ -16,16 +16,11 @@ export class Constants {
     },
     DASHBOARD: {
       HOME: "/dashboard",
-      COURSES: "/dashboard/courses",
-      COURSE_DETAIL: (courseId: string) => `/dashboard/courses/${courseId}`,
-      COURSE_MODULE: (courseId: string, moduleId: string) =>
-        `/dashboard/courses/${courseId}/modules/${moduleId}`,
-      EXERCISES: "/dashboard/exercises",
-      EXERCISE_DETAIL: (exerciseId: string) =>
-        `/dashboard/exercises/${exerciseId}`,
-      LEADERBOARD: "/dashboard/leaderboard",
-      PROFILE: "/dashboard/profile",
-      PROFILE_EDIT: "/dashboard/profile/edit",
+      COURSES: "/courses",
+      EXERCISES: "/exercises",
+      LEADERBOARD: "/leaderboard",
+      PROFILE: "/profile",
+      PROFILE_EDIT: "/profile/edit",
     },
     ADMIN: {
       HOME: "/admin",
