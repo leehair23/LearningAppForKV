@@ -91,6 +91,7 @@ spring:
                         - Path=/app/submissions/**, /app/playground/**
                       filters:
                         - StripPrefix=1
+                        - Authentication
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Vary, RETAIN_FIRST
 management:

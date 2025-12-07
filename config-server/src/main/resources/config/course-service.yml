@@ -1,7 +1,0 @@
-server:
-  port:
-    8084
-spring:
-  data:
-    mongodb:
-      database: course_db

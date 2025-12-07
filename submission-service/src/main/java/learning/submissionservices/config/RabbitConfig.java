@@ -1,4 +1,4 @@
-package config;
+package com.smartcode.runtimeservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.Queue;

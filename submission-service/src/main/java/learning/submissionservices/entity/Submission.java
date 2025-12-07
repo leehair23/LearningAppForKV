@@ -1,4 +1,4 @@
-package entity;
+package com.smartcode.runtimeservice.entity;
 
 
 import org.springframework.data.annotation.Id;
@@ -24,6 +24,7 @@ public class Submission {
     @Field("mem")   public Long memoryUsage;     // KB
     @Field("out") public String output;        // Stdout/Stderr (đã cắt ngắn)
     @Field("err") public String error;
+    @Field("atmp") public Integer attemptNumber;
     public Instant createdAt = Instant.now();
     public Long updatedAt = System.currentTimeMillis();
 
