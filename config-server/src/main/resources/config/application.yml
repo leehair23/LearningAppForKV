@@ -3,12 +3,15 @@ spring:
     mongodb:
       uri: ${MONGO_URI}
       auto-index-creation: true
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000
   rabbitmq:
     host: localhost
     port: 5672
     username: ${RABBITMQ_USER}
     password: ${RABBITMQ_PASSWORD}
-  # Định dạng log chung cho đẹp
   output:
     ansi:
       enabled: always

@@ -31,7 +31,7 @@ Hệ thống bao gồm các Microservices giao tiếp qua REST API và RabbitMQ:
 | **OJ** | `content-service`     | **8083** | Quản lý Đề bài (Problems), Testcase, Cuộc thi (Contest). |
 | **Engine** | `submission-services` | **8082** | Điều phối việc nộp bài, đẩy job vào hàng đợi (RabbitMQ). |
 | **Worker** | `runtime-service`     | **8086** | Thực thi code trong Docker, đo lường tài nguyên. |
-| **Infra** | `discovery/config`    | **8761/8888** | Service Discovery (Eureka) và Config Server. |
+| **Infra** | `discovery/com.smartcode.runtimeservice.config`    | **8761/8888** | Service Discovery (Eureka) và Config Server. |
 
 ---
 ## Workflows

@@ -5,6 +5,11 @@ import learning.contentservice.dto.TestCaseDTO;
 import learning.contentservice.entity.Problem;
 import learning.contentservice.repository.ProblemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,6 +18,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProblemService {
@@ -32,15 +38,23 @@ public class ProblemService {
         }
         return rawPage.map(this::mapToDTO);
     }
+    @Cacheable(value = "problem", key = "#id")
     public ProblemDTO getProblemForUser(String id){
+        log.info("Getting problem for id: {}", id);
         Problem p = problemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Not found"));
-        // Bổ sung thêm các trường chi tiết cần thiết cho trang Detail mà List không cần
         ProblemDTO dto = mapToDTO(p);
         dto.setTemplates(p.getTemplates());
         dto.setTimeLimit(p.getTimeLimit());
         dto.setMemoryLimit(p.getMemoryLimit());
         return dto;
+    }
+    @Bean
+    public CommandLineRunner debugRedis(CacheManager cacheManager){
+        return args -> {
+            log.info(cacheManager.getClass().getName());
+            log.info(cacheManager.getCacheNames().toString());
+        };
     }
     //admin stuff (CRUD)
     public Problem createProblem(Problem problem){
@@ -50,6 +64,7 @@ public class ProblemService {
         problem.setUpdatedAt(Instant.now());
         return problemRepository.save(problem);
     }
+    @Cacheable(value = "problem", key = "#id")
     public Problem updateProblem(String id, Problem req){
         Problem p = problemRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Not found"));
@@ -69,6 +84,7 @@ public class ProblemService {
         p.setUpdatedAt(Instant.now());
         return problemRepository.save(p);
     }
+    @Cacheable(value = "problem", key = "#id")
     public void deleteProblem(String id){
         if(!problemRepository.existsById(id)){
             throw new RuntimeException("Not found");
