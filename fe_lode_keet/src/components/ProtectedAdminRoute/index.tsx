@@ -3,7 +3,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { Constants } from "@/common/constants";
 import Loading from "../Loading";
 
-export const AdminRoute = () => {
+export const ProtectedAdminRoute = () => {
   const { isAuthenticated, user, loading } = useAuthStore();
 
   if (loading) {

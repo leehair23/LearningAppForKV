@@ -74,6 +74,16 @@
       "projectName": "runtime-service",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-CourseServiceApplication<course-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.courseservice.CourseServiceApplication",
+      "projectName": "course-service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }

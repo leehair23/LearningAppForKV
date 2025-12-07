@@ -100,10 +100,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ${isHovered ? "shadow-md" : ""}
       `,
       ghost: `
-        bg-transparent text-gray-700 border border-gray-300
+        bg-transparent border border-gray-300
         hover:bg-gray-50
         focus:ring-gray-400
-        ${isHovered ? "border-gray-400" : ""}
+        ${isHovered ? "border-gray-400 text-black" : ""}
       `,
     };
 

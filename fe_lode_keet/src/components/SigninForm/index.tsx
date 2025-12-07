@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { loginSchema } from "@/utils/validation";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { authService } from "@/services/authService";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Input from "../Input";
 import Button from "../Button";
 import { Constants } from "@/common/constants";
@@ -59,7 +59,6 @@ const SigninForm: React.FC = () => {
       const result = await authService.signIn(username, password);
       if (result) {
         navigate(Constants.ROUTES.DASHBOARD.HOME);
-        toast.success("Sign in successfully✅");
         return; // Return to stop form submission twice
       }
     } else {
@@ -95,7 +94,7 @@ const SigninForm: React.FC = () => {
       {/* Username Field */}
       <div className="mb-6">
         <label
-          htmlFor="email"
+          htmlFor="username"
           className="block text-xl text-white font-semibold mb-1">
           User name
         </label>
@@ -133,6 +132,15 @@ const SigninForm: React.FC = () => {
           className="w-full p-3"
         />
       </div>
+
+      <p className="py-3">
+        Don't have an account?{" "}
+        <Link
+          to={Constants.ROUTES.PUBLIC.SIGN_UP}
+          className="text-white-700 hover:text-white-900 transition-colors font-bold">
+          <span>Sign up here</span>
+        </Link>
+      </p>
 
       <Button
         type="submit"
