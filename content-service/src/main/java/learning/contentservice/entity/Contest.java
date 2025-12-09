@@ -12,13 +12,15 @@ import java.util.List;
 public class Contest {
     @Id
     private String id;
-
     private String title;
     private String description;
+
+    private String difficulty;
 
     private Instant startTime;
     private Instant endTime;
 
     private List<String> problemIds;
     private Instant createdAt = Instant.now();
+    private Instant updatedAt;
 }

@@ -38,12 +38,12 @@ public class ProblemService {
 
         // 2. Difficulty
         if (difficulty != null && !difficulty.isEmpty()) {
-            query.addCriteria(Criteria.where("difficulty").is(difficulty));
+            query.addCriteria(Criteria.where("difficulty").regex("^" + difficulty+ "$", "i"));
         }
 
         // 3. Tags
         if (tags != null && !tags.isEmpty()) {
-            query.addCriteria(Criteria.where("tags").in(tags));
+            query.addCriteria(Criteria.where("tags").regex("^" + tags + "$", "i"));
         }
         long total = mongoTemplate.count(query, Problem.class);
         query.with(pageable);
