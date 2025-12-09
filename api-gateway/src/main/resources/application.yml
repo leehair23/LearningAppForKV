@@ -43,6 +43,12 @@ spring:
                       filters:
                         - StripPrefix=1
                         - Authentication
+                    - id: leaderboard-service
+                      uri: lb://user-service
+                      predicates:
+                        - Path=/app/leaderboard/**, app/rank/**
+                      filters:
+                        - StripPrefix=1
 
                     #content-service
                     - id: content-admin
