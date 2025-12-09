@@ -9,18 +9,23 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class LearderboardService {
+public class LeaderboardService {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String GLOBAL_LB_KEY = "leaderboard:global";
 
-    public void updateScore(String username, double totalScore){
-        redisTemplate.opsForZSet().add(GLOBAL_LB_KEY, username, totalScore);
+    private String getKey(String contestId){
+        return contestId == null ? "leaderboard:global" : "leaderboard:contest:" + contestId;
     }
-    public void incrementScore(String username, double totalScore){
-        redisTemplate.opsForZSet().add(GLOBAL_LB_KEY, username, totalScore);
+
+
+    public void updateScore(String username, double score, String contestId){
+        redisTemplate.opsForZSet().add(getKey(contestId), username, score);
     }
-    public Set<ZSetOperations.TypedTuple<Object>> getTopUser(int limit){
-        return redisTemplate.opsForZSet().reverseRangeWithScores(GLOBAL_LB_KEY, 0, limit - 1);
+    public void incrementScore(String username, double scoreToAdd, String contestId) {
+        redisTemplate.opsForZSet().incrementScore(getKey(contestId), username, scoreToAdd);
+    }
+    public Set<ZSetOperations.TypedTuple<Object>> getTopUsers(int limit, String contestId) {
+        return redisTemplate.opsForZSet().reverseRangeWithScores(getKey(contestId), 0, limit - 1);
     }
 
     public long getRank(String username){

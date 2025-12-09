@@ -25,6 +25,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final LeaderboardService leaderboardService;
     private final AuthClient authClient;
 
     public Response getOrCreateProfile(String id, String username, String email) {
@@ -87,19 +88,31 @@ public class UserService {
         }
         return users.map(this::mapToDTO);
     }
-    public void updateScore(String id, ScoreUpdate req){
-        Optional<UserProfile> userOpt = userRepository.findById(id);
-        if(userOpt.isPresent()){
+
+    @Transactional
+    public void updateScore(String username, ScoreUpdate req){
+        Optional<UserProfile> userOpt = userRepository.findByUsername(username);
+
+        if (userOpt.isPresent()) {
             UserProfile user = userOpt.get();
 
-            if(req.getScoreToAdd() != null){
+            if (req.getScoreToAdd() != null) {
                 user.setScore(user.getScore() + req.getScoreToAdd());
             }
-            if (Boolean.TRUE.equals(req.getIncrementSolved())){
+            if (Boolean.TRUE.equals(req.getIncrementSolved())) {
                 user.setSolveCount(user.getSolveCount() + 1);
             }
+
             updateRank(user);
             userRepository.save(user);
+
+            if (req.getScoreToAdd() != null) {
+                leaderboardService.incrementScore(username, req.getScoreToAdd(), null);
+
+                if (req.getContestId() != null) {
+                    leaderboardService.incrementScore(username, req.getScoreToAdd(), req.getContestId());
+                }
+            }
         }
     }
     private void updateRank(UserProfile user){
