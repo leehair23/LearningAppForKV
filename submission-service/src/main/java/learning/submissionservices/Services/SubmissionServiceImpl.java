@@ -1,6 +1,7 @@
 package learning.submissionservices.Services;
 
 import learning.submissionservices.config.RabbitConfig;
+import learning.submissionservices.dto.ScoreUpdateRequest;
 import learning.submissionservices.dto.SubmissionResponse;
 import learning.submissionservices.dto.SubmissionbRequest;
 import learning.submissionservices.dto.content.ProblemDTO;
@@ -11,6 +12,7 @@ import learning.submissionservices.repository.ISubmissionRepository;
 import learning.submissionservices.repository.SubmissionService;
 import learning.submissionservices.utils.ContentClient;
 import learning.submissionservices.utils.RuntimeClient;
+import learning.submissionservices.utils.UserClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -31,6 +33,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final RabbitTemplate rabbitTemplate;
     private final RuntimeClient  runtimeClient;
     private final ContentClient contentClient;
+    private final UserClient userClient;
 
     @Value("${app.internal-secret}")
     private String internalSecret;
@@ -59,6 +62,9 @@ public class SubmissionServiceImpl implements SubmissionService {
         sub.setId(UUID.randomUUID().toString());
         sub.setUserId(userId);
         sub.setProblemId(req.getProblemId());
+        if (req.getContestId() != null && !req.getContestId().isEmpty()) {
+            sub.setContestId(req.getContestId());
+        }
         sub.setLanguage(req.getLanguage());
         sub.setSourceCode(req.getSourceCode());
         sub.setMode("SUBMIT");
@@ -96,33 +102,41 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Override
     public void processCallback(String id, CodeExecuteResponse result) {
         Submission sub = submissionRepository.findById(id).orElse(null);
-        if (sub == null) {
-            log.warn("Submission not found for callback: {}", id);
-            return;
-        }
+        if (sub == null) return;
+
+        // Cập nhật thông số từ Runtime
         sub.setOutput(result.getOutput());
         sub.setTimeExec(result.getTimeExec());
         sub.setMemoryUsage(result.getMemoryUsage());
 
-        String workerStatus = result.getStatus(); // DONE, TIMEOUT, ERROR
-        int exitCode = result.getExitCode();
-        if ("TIMEOUT".equals(workerStatus)) {
-            sub.setStatus("TIME_LIMIT_EXCEEDED");
-        }
-        else if ("ERROR".equals(workerStatus) || exitCode != 0) {
-            sub.setStatus("RUNTIME_ERROR");
-        }
-        else {
-            if ("TEST".equals(sub.getMode())) {
-                sub.setStatus("SUCCESS");
-            } else {
-                judgeSubmission(sub, result.getOutput());
-            }
-        }
+        String status = ("DONE".equals(result.getStatus()) && result.getExitCode() == 0)
+                ? "ACCEPTED" : "WRONG_ANSWER";
 
+        if ("TIMEOUT".equals(result.getStatus())) status = "TIME_LIMIT_EXCEEDED";
+        if ("ERROR".equals(result.getStatus())) status = "RUNTIME_ERROR";
+
+        sub.setStatus(status);
         sub.setUpdatedAt(Instant.now());
         submissionRepository.save(sub);
-        log.info("Submission {} processed. Verdict: {}", id, sub.getStatus());
+
+        if ("ACCEPTED".equals(status)) {
+            try {
+                double points = 10.0;
+
+                ScoreUpdateRequest scoreReq = ScoreUpdateRequest.builder()
+                        .scoreToAdd(points)
+                        .incrementSolved(true)
+                        .contestId(sub.getContestId())
+                        .build();
+
+                userClient.updateScore(sub.getUserId(), scoreReq, internalSecret);
+
+                log.info("Points added for userId {}, contestId {}", sub.getUserId(), sub.getContestId());
+
+            } catch (Exception e) {
+                log.error("Failed to update leaderboard for submission {}", id, e);
+            }
+        }
     }
     @Override
     @Async

@@ -11,4 +11,5 @@ public class SubmissionbRequest {
     private String problemId;
 
     private String stdin;
+    private String contestId;
 }

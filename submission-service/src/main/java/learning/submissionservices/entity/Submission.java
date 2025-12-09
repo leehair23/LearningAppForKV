@@ -28,6 +28,8 @@ public class Submission {
     @Field("mode")
     private String mode; // "TEST" or "SUBMIT"
 
+    @Field("cid")
+    private String contestId;
     // Kết quả chấm
     @Field("st")
     private String status; // PENDING, ACCEPTED, WRONG_ANSWER...
