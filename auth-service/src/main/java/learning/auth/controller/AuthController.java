@@ -45,6 +45,22 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
         return ResponseEntity.ok("logout successfully");
     }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body){
+        service.forgotPassword(body.get("email"));
+        return ResponseEntity.ok("Reset link has been sent to your email");
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String otp = body.get("otp");
+        String newPassword = body.get("newPassword");
+        if (email == null || otp == null || newPassword == null) {
+            return ResponseEntity.badRequest().body("Missing info");
+        }
+        service.resetPassword(email, otp, newPassword);
+        return ResponseEntity.ok("Password updated successfully.");
+    }
 
     //user-service stuff (CRUD)
     @PutMapping("/users/{username}/status")

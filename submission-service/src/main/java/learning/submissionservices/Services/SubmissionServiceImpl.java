@@ -15,9 +15,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -120,6 +123,46 @@ public class SubmissionServiceImpl implements SubmissionService {
         sub.setUpdatedAt(Instant.now());
         submissionRepository.save(sub);
         log.info("Submission {} processed. Verdict: {}", id, sub.getStatus());
+    }
+    @Override
+    @Async
+    public void rejudgeProblem(String problemId){
+        log.info("Rejudging problem {}", problemId);
+        List<Submission> submissions = submissionRepository.findByProblemId(problemId);
+
+        ProblemDTO problem = contentClient.getProblem(problemId, internalSecret);
+        for(Submission sub : submissions){
+            if("SUBMIT".equals(sub.getMode())){
+                sub.setStatus("PENDING");
+                sub.setOutput(null);
+                sub.setUpdatedAt(Instant.now());
+                submissionRepository.save(sub);
+
+                CodeExecuteRequest job = CodeExecuteRequest.builder()
+                        .id(sub.getId())
+                        .language(sub.getLanguage())
+                        .sourceCode(sub.getSourceCode())
+                        .stdin(problem.getTestCases().getFirst().getInput())
+                        .timeLimit(problem.getTimeLimit())
+                        .memoryLimit(problem.getMemoryLimit())
+                        .build();
+                rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY, job);
+            }
+        }
+        log.info("Rejudge triggered for {} submissions", submissions.size());
+    }
+    @Override
+    public Map<String, Object> getSubmissionStats(){
+        long total = submissionRepository.count();
+        long accepted = submissionRepository.countByStatus("ACCEPTED");
+
+        double acRate = total == 0 ? 0 : (double) accepted / total * 100;
+
+        return Map.of(
+                "totalSubmissions", total,
+                "acceptedSubmissions", accepted,
+                "acRate", acRate
+        );
     }
     private void judgeSubmission(Submission sub, String actualOutput){
         try{

@@ -33,6 +33,15 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: smartcode-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   rabbitmq_data:

@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/problems")
 public class ProblemController {
@@ -28,11 +30,12 @@ public class ProblemController {
     public ResponseEntity<Page<ProblemDTO>> getProblems(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) List<String> tags,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return ResponseEntity.ok(problemService.getProblems(q,difficulty,pageable));
+        return ResponseEntity.ok(problemService.getProblems(q,difficulty,tags,pageable));
     }
 
     @GetMapping("/{id}")

@@ -32,4 +32,14 @@ public class SubmissionController {
         submissionService.processCallback(id, response);
         return ResponseEntity.ok().build();
     }
+    @PostMapping("/rejudge")
+    public ResponseEntity<?> rejudge(
+            @RequestParam String problemId,
+            @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
+    ){
+        if (!"ADMIN".equals(role)) return ResponseEntity.status(403).build();
+
+        submissionService.rejudgeProblem(problemId);
+        return ResponseEntity.ok("Rejudge process started in background.");
+    }
 }
