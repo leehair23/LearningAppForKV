@@ -1,4 +1,4 @@
-package learning.userservices.DTO;
+package learning.submissionservices.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScoreUpdate {
+public class ScoreUpdateRequest {
     private Double scoreToAdd;
     private Boolean incrementSolved;
     private String contestId;

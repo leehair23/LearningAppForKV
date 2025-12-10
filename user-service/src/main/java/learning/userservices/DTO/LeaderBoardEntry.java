@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScoreUpdate {
-    private Double scoreToAdd;
-    private Boolean incrementSolved;
-    private String contestId;
+public class LeaderBoardEntry {
+    private String username;
+    private Double score;
+    private Long rank;
 }

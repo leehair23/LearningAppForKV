@@ -116,7 +116,6 @@ public class CourseService {
     public Page<Course> searchCourses(String keyword, String level, String language, Pageable pageable){
         Query query = new Query();
         if (keyword != null && !keyword.isEmpty()) {
-            // Dùng Regex để tìm kiếm không phân biệt hoa thường ('i')
             Criteria nameCriteria = Criteria.where("title").regex(keyword, "i");
             Criteria descCriteria = Criteria.where("description").regex(keyword, "i");
             query.addCriteria(new Criteria().orOperator(nameCriteria, descCriteria));
@@ -214,5 +213,7 @@ public class CourseService {
             courseRepository.save(course);
         }
     }
-
+    public int totalLesson(){
+        return 1;
+    }
 }
