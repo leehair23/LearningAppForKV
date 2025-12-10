@@ -89,6 +89,7 @@ spring:
                         - Path=/app/courses/**, /app/lessons/**, /app/progress/**
                       filters:
                         - StripPrefix=1
+                        - Authentication
 
                     #submission-service
                     - id: submission-service
