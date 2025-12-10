@@ -18,32 +18,42 @@ export class CourseService {
   }
 
   public async getCourses() {
-    const { setLoading, setCourses, setPageable, setAdditionalData } =
+    const { setLoading, courses, setCourses, setPageable, setAdditionalData } =
       useCourseStore.getState();
     try {
-      setLoading(true);
-      const response = await api.get(`/courses`);
-      const {
-        content,
-        pageable,
-        totalPages,
-        totalElements,
-        size,
-        number,
-        numberOfElements,
-      } = await response.data;
-      const mappedCourses = this.mapCoursesData(content);
-      const mappedPageableCriteria = this.mapPageable(pageable);
-      setCourses(mappedCourses);
-      setPageable(mappedPageableCriteria);
-      setAdditionalData({
-        totalPages,
-        totalElements,
-        size,
-        number,
-        numberOfElements,
-      });
-      toast.success("Courses retrieved successfully✅");
+      if (!courses || courses.length === 0) {
+        setLoading(true);
+        const response = await api.get(`/courses`);
+        const {
+          content,
+          pageable,
+          last,
+          totalPages,
+          totalElements,
+          size,
+          number,
+          first,
+          numberOfElements,
+          sort,
+          empty,
+        } = response.data;
+        const mappedCourses = this.mapCoursesData(content);
+        const mappedPageableCriteria = this.mapPageable(pageable);
+        setCourses(mappedCourses);
+        setPageable(mappedPageableCriteria);
+        setAdditionalData({
+          last,
+          totalPages,
+          totalElements,
+          size,
+          number,
+          first,
+          numberOfElements,
+          sort,
+          empty,
+        });
+        toast.success("Courses retrieved successfully✅");
+      }
       return;
     } catch (error) {
       console.error("Error when requesting courses:", error);
@@ -57,10 +67,15 @@ export class CourseService {
   private mapPageable(data: IPageable) {
     return {
       pageNumber: data.pageNumber,
-      size: data.pageSize,
-      sorted: data.sort.sorted,
+      pageSize: data.pageSize,
+      sort: {
+        empty: data.sort.empty,
+        sorted: data.sort.sorted,
+        unsorted: data.sort.unsorted,
+      },
       offset: data.offset,
       paged: data.paged,
+      unpaged: data.unpaged,
     };
   }
 
@@ -70,11 +85,13 @@ export class CourseService {
         id: crs.id,
         title: crs.title,
         description: crs.description,
+        thumbnail: crs.thumbnail,
         level: crs.level,
-        chapters: crs.chapters,
         price: crs.price,
-        updatedAt: new Date(crs?.updatedAt).toLocaleString(),
+        chapters: crs.chapters,
         isPublished: crs.isPublished,
+        createdAt: new Date(crs.createdAt).toLocaleString(),
+        updatedAt: new Date(crs.updatedAt).toLocaleString(),
       };
     });
   }

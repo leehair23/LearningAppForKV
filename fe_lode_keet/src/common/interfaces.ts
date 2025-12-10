@@ -13,36 +13,44 @@ export interface IChapter {
 }
 
 export interface IPageable {
-  pageNumber?: number;
-  pageSize?: NumberConstructor;
+  pageNumber: number;
+  pageSize: number;
   sort: {
     empty: boolean;
     sorted: boolean;
     unsorted: boolean;
   };
-  offset?: number;
-  paged?: boolean;
-  unpaged?: boolean;
+  offset: number;
+  paged: boolean;
+  unpaged: boolean;
 }
 
 export interface IAdditionalData {
+  last: boolean;
   totalPages: number;
   totalElements: number;
   size: number;
   number: number;
+  first: boolean;
   numberOfElements: number;
+  sort: {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  };
+  empty: boolean;
 }
 
 export interface ICourse {
   id: string;
   title: string;
   description: string;
-  thumbnail?: string | null;
+  thumbnail: string | null;
   level: T_CourseLevel;
-  price?: number | null;
+  price: number | null;
   chapters: IChapter[];
   isPublished: boolean;
-  createdAt?: string;
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -70,12 +78,14 @@ export interface AuthState {
 
 export interface CourseState {
   courses: ICourse[] | null;
+  selectedCourse: ICourse | null;
   loading: boolean;
   hasMoreData: boolean;
   pageable: Partial<IPageable> | null;
   additionalData: Partial<IAdditionalData> | null;
 
   setCourses: (data: ICourse[]) => void;
+  setSelectedCourse: (data: ICourse) => void;
   setHasMoreData: (hasMoreData: boolean) => void;
   setLoading: (loading: boolean) => void;
   setPageable: (data: Partial<IPageable>) => void;

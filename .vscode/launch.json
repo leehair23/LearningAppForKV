@@ -83,6 +83,17 @@
       "mainClass": "learning.courseservice.CourseServiceApplication",
       "projectName": "course-service",
       "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=56580 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=course-service"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-ContentServiceApplication<content>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "learning.contentservice.ContentServiceApplication",
+      "projectName": "content",
+      "args": "",
       "envFile": "${workspaceFolder}/.env"
     }
   ]

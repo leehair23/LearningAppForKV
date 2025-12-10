@@ -17,6 +17,7 @@ import { ProtectedAdminRoute } from "./components/ProtectedAdminRoute/index.tsx"
 import Dashboard from "./pages/Dashboard/index.tsx";
 import SignUp from "./pages/SignUp/index.tsx";
 import Courses from "./pages/Courses/index.tsx";
+import CourseDetail from "./pages/Courses/CourseDetail/index.tsx";
 
 const router = createBrowserRouter([
   {
@@ -60,7 +61,7 @@ const router = createBrowserRouter([
         path: "courses/:id",
         element: (
           <ProtectedRoute>
-            <Dashboard />
+            <CourseDetail />
           </ProtectedRoute>
         ),
       },

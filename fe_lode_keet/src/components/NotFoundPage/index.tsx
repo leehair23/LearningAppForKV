@@ -3,7 +3,7 @@ import Button from "../Button";
 import Container from "../Container";
 
 const NotFoundPage = () => (
-  <Container>
+  <Container additionalClassName="h-screen">
     <p className="py-5 text-5xl">Page is not found ❌</p>
 
     <div className="pt-8">
