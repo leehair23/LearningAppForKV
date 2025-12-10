@@ -1,5 +1,5 @@
 import Container from "../../components/Container";
-import SigninForm from "../../components/SignInForm";
+import SigninForm from "../../components/SigninForm";
 import React from "react";
 
 const SignIn: React.FC = () => {
