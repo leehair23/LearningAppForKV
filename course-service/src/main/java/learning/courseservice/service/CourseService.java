@@ -213,5 +213,7 @@ public class CourseService {
             courseRepository.save(course);
         }
     }
-
+    public int totalLesson(){
+        return 1;
+    }
 }
