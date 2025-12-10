@@ -12,6 +12,7 @@ export const useCourseStore = create<CourseState>((set) => ({
   hasMoreData: true,
   pageable: null,
   additionalData: null,
+  selectedCourse: null,
 
   clearState: () => {
     set({
@@ -22,6 +23,7 @@ export const useCourseStore = create<CourseState>((set) => ({
       additionalData: null,
     });
   },
+  setSelectedCourse: (data: ICourse) => set({ selectedCourse: data }),
   setCourses: (data: ICourse[] | null) => set({ courses: data }),
   setHasMoreData: (hasMoreData: boolean) => set({ hasMoreData }),
   setLoading: (loading: boolean) => set({ loading }),

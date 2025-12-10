@@ -4,7 +4,7 @@ import React from "react";
 
 const SignUp: React.FC = () => {
   return (
-    <Container>
+    <Container additionalClassName="h-screen">
       <SignupForm />
     </Container>
   );
