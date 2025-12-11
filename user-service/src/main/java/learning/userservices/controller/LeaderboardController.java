@@ -42,9 +42,9 @@ public class LeaderboardController {
         }
         return ResponseEntity.ok(response);
     }
-    @GetMapping("rank/{username}")
-    public ResponseEntity<?> getUserRank(@PathVariable String username){
-        long rank = leaderboardService.getRank(username);
+    @GetMapping("rank/{userid}")
+    public ResponseEntity<?> getUserRank(@PathVariable String userid, @RequestParam(required = false) String contestId){
+        long rank = leaderboardService.getRank(userid,contestId);
 
         if(rank == 0){
             return ResponseEntity.notFound().build();
