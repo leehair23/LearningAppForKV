@@ -38,7 +38,7 @@ public class ContestController {
             @RequestBody Map<String, Object> body,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
             ){
-        if (!"ADMIN".equals(role)) return ResponseEntity.status(403).build();
+        if (!isAdminOrTeacher(role)) return ResponseEntity.status(403).build();
         String title = (String) body.get("title");
         int count = (int) body.getOrDefault("count", 5);
         int duration = (int) body.getOrDefault("duration", 120);
@@ -52,16 +52,18 @@ public class ContestController {
             @RequestBody Contest contest,
             @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
-        if (!"ADMIN".equals(role)) return ResponseEntity.status(403).build();
+        if (!isAdminOrTeacher(role)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(contestService.updateContest(id, contest));
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContest(@PathVariable String id,
                                               @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role
     ) {
-        if (!"ADMIN".equals(role)) return ResponseEntity.status(403).build();
+        if (!isAdminOrTeacher(role)) return ResponseEntity.status(403).build();
         contestService.deleteContest(id);
         return ResponseEntity.ok().build();
     }
-
+    boolean isAdminOrTeacher(String role){
+        return "ADMIN".equals(role) || "TEACHER".equals(role);
+    }
 }

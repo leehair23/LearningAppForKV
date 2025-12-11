@@ -4,10 +4,12 @@ import learning.contentservice.dto.ProblemDTO;
 import learning.contentservice.dto.TestCaseDTO;
 import learning.contentservice.entity.Problem;
 import learning.contentservice.repository.ProblemRepository;
+import learning.contentservice.utils.RestPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
@@ -29,7 +31,12 @@ public class ProblemService {
     private final ProblemRepository problemRepository;
     private final MongoTemplate mongoTemplate;
     //public view
+    @Cacheable(
+            value = "problems",
+            key = "'page:' + #pageable.pageNumber + ':size:' + #pageable.pageSize + ':q:' + #q + ':diff:' + #difficulty + ':tags:' + #tags"
+    )
     public Page<ProblemDTO> getProblems(String keyword, String difficulty, List<String>tags, Pageable pageable) {
+        log.info("Fetching problem list from DB...");
         Query query = new Query();
         // 1. Keyword
         if (keyword != null && !keyword.isEmpty()) {
@@ -50,7 +57,7 @@ public class ProblemService {
         List<Problem> problems = mongoTemplate.find(query, Problem.class);
         List<ProblemDTO> dtos = problems.stream().map(this::mapToDTO).collect(Collectors.toList());
 
-        return new PageImpl<>(dtos, pageable, total);
+        return new RestPage<>(dtos, pageable, total);
     }
     @Cacheable(value = "problem", key = "#id")
     public ProblemDTO getProblemForUser(String id){
@@ -71,6 +78,8 @@ public class ProblemService {
         };
     }
     //admin stuff (CRUD)
+
+    @CacheEvict(value = "problems", allEntries = true)
     public Problem createProblem(Problem problem){
         if(problem.getTimeLimit() == null) problem.setTimeLimit(1.0);
         if (problem.getMemoryLimit() == null) problem.setMemoryLimit(256000L);
@@ -80,6 +89,7 @@ public class ProblemService {
     }
     @Cacheable(value = "problem", key = "#id")
     public Problem updateProblem(String id, Problem req){
+
         Problem p = problemRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Not found"));
 

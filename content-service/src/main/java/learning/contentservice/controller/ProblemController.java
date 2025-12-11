@@ -57,24 +57,27 @@ public class ProblemController {
     //admin
     @PostMapping
     public ResponseEntity<Problem> create(@RequestBody Problem problem, @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role){
-        if(!"ADMIN".equals(role)){
+        if(!isAdminOrTeacher(role)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(problemService.createProblem(problem));
     }
     @PutMapping("/{id}")
     public ResponseEntity<Problem> update(@PathVariable String id, @RequestBody Problem problem, @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role){
-        if(!"ADMIN".equals(role)){
+        if(!isAdminOrTeacher(role)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(problemService.updateProblem(id, problem));
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id, @RequestHeader(value = "X-Auth-Role", defaultValue = "USER") String role){
-        if(!"ADMIN".equals(role)){
+        if(!isAdminOrTeacher(role)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         problemService.deleteProblem(id);
         return ResponseEntity.ok().build();
+    }
+    boolean isAdminOrTeacher(String role){
+        return "ADMIN".equals(role) || "TEACHER".equals(role);
     }
 }
