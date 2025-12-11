@@ -63,6 +63,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
         String username = jwt.getSubject();
         String email = jwt.getClaimAsString("email");
         String role = jwt.getClaimAsString("role");
+        String userId = jwt.getClaimAsString("userId");
 
         if (config.getRequiredRole() != null && !config.getRequiredRole().isEmpty()) {
 
@@ -91,6 +92,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
                 .header("X-Auth-User", username != null ? username : "")
                 .header("X-Auth-Email", email != null ? email : "")
                 .header("X-Auth-Role", role != null ? role : "USER")
+                .header("X-Auth-UserId", userId != null ? userId : "")
                 .build();
 
         ServerWebExchange mutated = exchange.mutate().request(request).build();
