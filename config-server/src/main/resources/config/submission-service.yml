@@ -4,3 +4,8 @@ spring:
   data:
     mongodb:
       database: submission_db
+  cloud:
+    openfeign:
+      httpclient:
+        hc5:
+          enabled: true
