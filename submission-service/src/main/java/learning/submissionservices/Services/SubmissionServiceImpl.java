@@ -104,22 +104,30 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission sub = submissionRepository.findById(id).orElse(null);
         if (sub == null) return;
 
-        // Cập nhật thông số từ Runtime
         sub.setOutput(result.getOutput());
         sub.setTimeExec(result.getTimeExec());
         sub.setMemoryUsage(result.getMemoryUsage());
 
-        String status = ("DONE".equals(result.getStatus()) && result.getExitCode() == 0)
-                ? "ACCEPTED" : "WRONG_ANSWER";
+        String workerStatus = result.getStatus();
+        int exitCode = result.getExitCode();
 
-        if ("TIMEOUT".equals(result.getStatus())) status = "TIME_LIMIT_EXCEEDED";
-        if ("ERROR".equals(result.getStatus())) status = "RUNTIME_ERROR";
+        if ("TIMEOUT".equals(workerStatus)) {
+            sub.setStatus("TIME_LIMIT_EXCEEDED");
+        }
+        else if ("ERROR".equals(workerStatus) || exitCode != 0) {
+            sub.setStatus("RUNTIME_ERROR");
+            if (sub.getOutput() == null || sub.getOutput().isEmpty()) {
+                sub.setOutput("Process exited with code " + exitCode);
+            }
+        }
+        else {
+            judgeSubmission(sub, result.getOutput());
+        }
 
-        sub.setStatus(status);
         sub.setUpdatedAt(Instant.now());
         submissionRepository.save(sub);
 
-        if ("ACCEPTED".equals(status)) {
+        if ("ACCEPTED".equals(sub.getStatus())) {
             try {
                 double points = 10.0;
 
@@ -130,7 +138,6 @@ public class SubmissionServiceImpl implements SubmissionService {
                         .build();
 
                 userClient.updateScore(sub.getUserId(), scoreReq, internalSecret);
-
                 log.info("Points added for userId {}, contestId {}", sub.getUserId(), sub.getContestId());
 
             } catch (Exception e) {
@@ -178,13 +185,19 @@ public class SubmissionServiceImpl implements SubmissionService {
                 "acRate", acRate
         );
     }
-    private void judgeSubmission(Submission sub, String actualOutput){
-        try{
+    private void judgeSubmission(Submission sub, String actualOutput) {
+        if ("TEST".equals(sub.getMode())) {
+            sub.setStatus("SUCCESS");
+            return;
+        }
+
+        try {
             ProblemDTO problem = contentClient.getProblem(sub.getProblemId(), internalSecret);
             if (problem.getTestCases() == null || problem.getTestCases().isEmpty()) {
-                sub.setStatus("System Error: No Testcases");
+                sub.setStatus("System Error: No Testcases found");
                 return;
             }
+
             String expectedOutput = problem.getTestCases().getFirst().getExpectedOutput();
 
             String normActual = normalize(actualOutput);
@@ -194,10 +207,10 @@ public class SubmissionServiceImpl implements SubmissionService {
                 sub.setStatus("ACCEPTED");
             } else {
                 sub.setStatus("WRONG_ANSWER");
-                // Có thể lưu thêm diff nếu muốn: "Expected: A, Found: B"
             }
-        }catch (Exception e){
-            log.error(sub.getId(), e);
+
+        } catch (Exception e) {
+            log.error("Error judging submission " + sub.getId(), e);
             sub.setStatus("INTERNAL_ERROR");
         }
     }
