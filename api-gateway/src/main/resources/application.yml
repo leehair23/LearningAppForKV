@@ -58,7 +58,7 @@ spring:
                         - Method=POST,PUT,DELETE
                       filters:
                         - StripPrefix=1
-                        - Authentication=ADMIN
+                        - Authentication=ADMIN,TEACHER
                     - id: content-internal-block
                       uri: no://op
                       predicates:
@@ -81,7 +81,7 @@ spring:
                         - Method=POST,PUT,DELETE
                       filters:
                         - StripPrefix=1
-                        - Authentication=ADMIN
+                        - Authentication=ADMIN,TEACHER
 
                     - id: course-service
                       uri: lb://course-service

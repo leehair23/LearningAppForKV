@@ -32,7 +32,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
 
     @Override
     public List<String> shortcutFieldOrder() {
-        return Arrays.asList("requiredRole");
+        return List.of("requiredRole");
     }
 
     @Override
@@ -50,6 +50,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
             String token = authHeader.substring(7).trim();
 
             return jwtDecoder.decode(token)
+                    // Truyền thêm 'config' vào để check quyền
                     .flatMap(jwt -> handleValidJwt(exchange, chain, jwt, config))
                     .onErrorResume(ex -> {
                         log.warn("JWT validation failed: {}", ex.getMessage());
@@ -59,23 +60,34 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
     }
 
     private Mono<Void> handleValidJwt(ServerWebExchange exchange, GatewayFilterChain chain, Jwt jwt, Config config) {
-        String userId = jwt.getClaimAsString("userId");
         String username = jwt.getSubject();
         String email = jwt.getClaimAsString("email");
         String role = jwt.getClaimAsString("role");
 
-        log.debug("User: {}, Role: {}", username, role);
+        if (config.getRequiredRole() != null && !config.getRequiredRole().isEmpty()) {
 
-        if (config.getRequiredRole() != null) {
-            if (role == null || !role.equals(config.getRequiredRole())) {
-                log.warn("Access Denied for user: {}. Required: {}, Actual: {}", username, config.getRequiredRole(), role);
-                return onError(exchange, "Forbidden: You don't have permission", HttpStatus.FORBIDDEN);
+            String[] allowedRoles = config.getRequiredRole().split(",");
+
+            boolean isAuthorized = false;
+
+            for (String allowed : allowedRoles) {
+                if (allowed.trim().equalsIgnoreCase(role)) {
+                    isAuthorized = true;
+                    break;
+                }
+            }
+
+            if (!isAuthorized) {
+                log.warn("Access Denied. User: {}, Role: {}. Required: {}", username, role, config.getRequiredRole());
+                return onError(exchange, "Forbidden: Insufficient privileges", HttpStatus.FORBIDDEN);
             }
         }
+        // -------------------------------------
+
+        log.debug("Authorized User: {}, Role: {}", username, role);
 
         ServerHttpRequest request = exchange.getRequest()
                 .mutate()
-                .header("X-Auth-UserId", userId)
                 .header("X-Auth-User", username != null ? username : "")
                 .header("X-Auth-Email", email != null ? email : "")
                 .header("X-Auth-Role", role != null ? role : "USER")
