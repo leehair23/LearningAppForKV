@@ -66,7 +66,7 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
 
         if (config.getRequiredRole() != null && !config.getRequiredRole().isEmpty()) {
 
-            String[] allowedRoles = config.getRequiredRole().split(",");
+            String[] allowedRoles = config.getRequiredRole().split(";");
 
             boolean isAuthorized = false;
 

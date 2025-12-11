@@ -58,7 +58,7 @@ spring:
                         - Method=POST,PUT,DELETE
                       filters:
                         - StripPrefix=1
-                        - Authentication=ADMIN,TEACHER
+                        - Authentication=ADMIN;TEACHER
                     - id: content-internal-block
                       uri: no://op
                       predicates:
@@ -81,7 +81,7 @@ spring:
                         - Method=POST,PUT,DELETE
                       filters:
                         - StripPrefix=1
-                        - Authentication=ADMIN,TEACHER
+                        - Authentication=ADMIN;TEACHER
 
                     - id: course-service
                       uri: lb://course-service
@@ -99,8 +99,8 @@ spring:
                       filters:
                         - StripPrefix=1
                         - Authentication
-          default-filters:
-            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Vary, RETAIN_FIRST
+#          default-filters:
+#            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Vary, RETAIN_FIRST
 management:
   endpoints:
     web:
